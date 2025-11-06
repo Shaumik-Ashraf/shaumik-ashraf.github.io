@@ -1,0 +1,21 @@
+@import "../themes/brite/bootstrap.min.css";
+
+:root {
+  --footer-height: 5rem;
+}
+
+#layoutContainer {
+  position: relative;
+  min-height: 100vh;
+}
+
+#layoutContentWrapper {
+  padding-bottom: var(--footer-height);
+}
+
+#layoutFooter {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: var(--footer-height);
+}
