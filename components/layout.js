@@ -9,7 +9,7 @@ export default function Layout({ children }) {
       </div>
 			<footer id="layoutFooter" className="text-center text-muted">
 				<hr />
-				<p>&copy; 2025 Template</p>
+				<p>&copy; 2025 Shaumik Ashraf</p>
 			</footer>
     </div>
   )
