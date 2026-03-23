@@ -13,6 +13,12 @@
   padding-bottom: var(--footer-height);
 }
 
+#gameCanvas {
+  width: 100%;
+  height: 600px;
+  cursor: crosshair;
+}
+
 #layoutFooter {
   position: absolute;
   bottom: 0;
