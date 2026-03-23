@@ -4,9 +4,9 @@ import { createSpriteSheet, SLIME_SHEET_CONFIG } from "./sprite_sheet";
 import SpriteAnimation from "./sprite_animation";
 
 // Physics constants — tunable
-const SLIME_W      = 320;   // hitbox width
-const SLIME_H      = 160;   // normal hitbox height
-const SLIME_H_CROUCHING = 80;  // hitbox height when crouching
+const SLIME_W      = 64;   // hitbox width
+const SLIME_H      = 64;   // normal hitbox height
+const SLIME_H_CROUCHING = 32;  // hitbox height when crouching
 const MOVE_SPEED   = 4;    // horizontal velocity (px/tick)
 const JUMP_VEL     = -10;  // vertical velocity on jump
 const SPRITE_SCALE = 4;    // multiplier applied to sprite frame dimensions on draw
@@ -52,7 +52,7 @@ export default function GameEngine() {
     renderRef.current = Render.create({
       element: containerRef.current,
       engine:  engineRef.current,
-      options: { width, height, wireframes: false, background: CANVAS_BG },
+      options: { width, height, wireframes: true, background: CANVAS_BG },
     });
 
     // Static world boundaries — no side walls (2D scroller)
