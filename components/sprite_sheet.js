@@ -23,7 +23,8 @@ export const SLIME_SHEET_CONFIG = {
   sheetWidth: 368,
   sheetHeight: 128,
   rows: [
-    { name: 'idle',    frameCount: 5,  rowHeight: 16, leftOffset: 48, columnWidth: 15 },
+    { name: 'offset', frameCount: 1, rowHeight: 2 },
+    { name: 'idle',    frameCount: 5,  rowHeight: 16, leftOffset: 48, columnWidth: 16 },
     { name: 'walk',    frameCount: 7,  rowHeight: 16, leftOffset: 48, columnWidth: 15 },
     { name: 'crushed', frameCount: 4,  rowHeight: 16, leftOffset: 48, columnWidth: 15 },
     { name: 'crouch',  frameCount: 3,  rowHeight: 16, leftOffset: 48, columnWidth: 15 },
