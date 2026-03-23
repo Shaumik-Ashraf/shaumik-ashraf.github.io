@@ -39,4 +39,4 @@ Sprites created by [Pixelsnorf](https://pixelsnorf.itch.io/platformer-slimes).
 
 ## License
 
-See [LICENSE](./LICENSE)
+See [LICENSE](./LICENSE).
