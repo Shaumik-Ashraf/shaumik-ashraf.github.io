@@ -1,5 +1,5 @@
 import Navbar from './navbar';
-import GameEngine from './GameEngine';
+import GameEngine from './game_engine';
 
 export default function Layout({ children }) {
   return (
