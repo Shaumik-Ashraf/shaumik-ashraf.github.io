@@ -7,6 +7,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
+  // useEffect is required to prevent NextJS SSR hydration error in dev
+	// and this is the correct rule despite lint warning
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setMounted(true); }, []);
 
   const handleClose = () => router.push("/");

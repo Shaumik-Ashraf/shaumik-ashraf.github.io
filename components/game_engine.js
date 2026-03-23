@@ -29,18 +29,6 @@ export default function GameEngine() {
   // Keyboard state: key → boolean
   const keysRef = useRef({});
 
-  useEffect(() => {
-    initializeRenderer();
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup',   handleKeyUp);
-
-    return () => {
-      clearRenderer();
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup',   handleKeyUp);
-    };
-  }, []);
-
   const initializeRenderer = () => {
     if (!containerRef.current) return;
 
@@ -221,5 +209,17 @@ export default function GameEngine() {
     }
   };
 
+  useEffect(() => {
+    initializeRenderer();
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup',   handleKeyUp);
+
+    return () => {
+      clearRenderer();
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup',   handleKeyUp);
+    };
+  }, []);
+		
   return <div id="gameCanvas" ref={containerRef} />;
 }
