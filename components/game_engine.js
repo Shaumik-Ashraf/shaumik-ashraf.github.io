@@ -221,5 +221,5 @@ export default function GameEngine() {
     };
   }, []);
 		
-  return <div id="gameCanvas" ref={containerRef} />;
+	return <div id="gameCanvas" ref={containerRef} />;
 }

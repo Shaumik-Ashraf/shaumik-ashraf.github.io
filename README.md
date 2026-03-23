@@ -1,83 +1,38 @@
-# nextjs-bootstrap-static-pages
+# [shaumik-ashraf.github.io](https://shaumik-ashraf.github.io/)
 
-NextJS Template configured for pure client-side application (AKA export mode), GitHub Pages deployment, and React-Bootstrap/Bootstrap 5.3 styling.
+[![Deploy Next.js site to Pages](https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io/actions/workflows/deploy.yml)
 
-## 🚀 Use this template
+> Development in progress
 
-### Via GitHub (recommended)
+A fun little web app showcasing some websites I like. Built with NextJS and Claude Code.
 
-Press the "Use This Template" button and create your own repository.
+## Dependencies
 
-### Via npx
+- [NodeJS](https://nodejs.org) v24.9.0 (may work with other versions)
 
-Invoke `create-next-app`:
+## Quick Start
 
-```
-npx create-next-app@latest -e https://github.com/Shaumik-Ashraf/nextjs-bootstrap-static-pages
-```
+1. `npm ci`
+2. `npm start`
 
-Setup a new GitHub repository (required for GitHub Pages):
+## Commands
 
-```
-git init
-git add --all
-git commit -m "init commit"
-git remote add origin [new-repository-url]
-git push --force -u origin main
-```
+| command                  | purpose                                      |
+|:-------------------------|:---------------------------------------------|
+| `npm run dev`            | Launch server in dev mode with auto-restarts |
+| `npm run build`          | Compile SPA app into `out/` folder           |
+| `npm run lint`           | Run ESLint                                   |
 
-## 📚 Dependencies
-
-- [NodeJS](https://nodejs.org) v22.11.0 (may work with other versions)
-
-## 💻 Developer Start
-
-1. Open your command line and run `npm install`
-
-2. Run `npm run dev` to start the development server
-
-3. Open <http://localhost:3000> to view the live app
-
-## ⚙️ Deployment
-
-### GitHub Pages
-
-1. Go to your repository **Settings -> Pages** and set **Source** to `GitHub Actions`.
-
-2. Allow a few minutes to replicate, and the site will become available.
-
-You can get more guidance at [GitHub's documentation](https://docs.github.com/en/pages).
-
-### Generic Instructions
-
-1. First, compile this app into static HTML, CSS, and JavaScript:
-
-```
-npm run build
-```
-
-The final output will be in the `out/` folder. The build process is powered by NextJS'
-[export mode](https://nextjs.org/docs/pages/guides/static-exports).
-
-2. Serve the contents in `out/` with a production-grade file server such as
-[NGINX](https://nginx.org) or [Apache](https://apache.org/).
-
-3. Acquire a domain, configure the DNS, and setup SSL certification. Consult your
-hosting service or web server documentation for how do this.
-
-This app also comes with an `npm start` command which will run a web server for you,
-however it is recommended **not** to use this for production since it cannot handle
-SSL, rate limiting, or other critical features.
-
-## 📒 Documentation
+## Documentation
 
 - [NextJS 16](https://nextjs.org) **This app uses Pages mode**
 - [React-Bootstrap](https://react-bootstrap.github.io/)
 - [Bootstrap 5](https://getbootstrap.com/)
 - [ReactJS 19](https://react.dev/)
+- [Matter.JS](https://www.brm.io/matter-js/)
 
 ## Credits
 
-Source code developed by yours truly. 
+(C) Shaumik Ashraf 2026
 
 Sprites created by [Pixelsnorf](https://pixelsnorf.itch.io/platformer-slimes).
