@@ -55,12 +55,14 @@ export default function GameEngine() {
       options: { width, height, wireframes: false, background: CANVAS_BG },
     });
 
-    // Static world boundaries
-    const floor     = Bodies.rectangle(width / 2,  height + 10, width, 20, { isStatic: true, friction: 0.5 });
-    const rightWall = Bodies.rectangle(width + 10, height / 2,  20, height, { isStatic: true });
-    const leftWall  = Bodies.rectangle(-10,        height / 2,  20, height, { isStatic: true });
+    // Static world boundaries — no side walls (2D scroller)
+    const floor = Bodies.rectangle(width / 2, height - 10, width, 20, {
+      isStatic: true,
+      friction: 0.5,
+      render: { fillStyle: '#586e75' },  // Solarized base01
+    });
     floorRef.current = floor;
-    World.add(engineRef.current.world, [floor, rightWall, leftWall]);
+    World.add(engineRef.current.world, floor);
 
     // Player body — invisible, sprite drawn via afterRender
     slimeRef.current = Bodies.rectangle(width / 2, 40, SLIME_W, SLIME_H, {
