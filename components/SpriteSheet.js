@@ -23,12 +23,12 @@ export const SLIME_SHEET_CONFIG = {
   sheetWidth: 368,
   sheetHeight: 128,
   rows: [
-    { name: 'idle',    frameCount: 5,  rowHeight: 16 },
-    { name: 'walk',    frameCount: 7,  rowHeight: 16 },
-    { name: 'crushed', frameCount: 4,  rowHeight: 16 },
-    { name: 'crouch',  frameCount: 3,  rowHeight: 16 },
-    { name: 'attack',  frameCount: 5,  rowHeight: 32 },
-    { name: 'jump',    frameCount: 10, rowHeight: 32 },
+    { name: 'idle',    frameCount: 5,  rowHeight: 16, leftOffset: 50, columnWidth: 15 },
+    { name: 'walk',    frameCount: 7,  rowHeight: 16, leftOffset: 50, columnWidth: 15 },
+    { name: 'crushed', frameCount: 4,  rowHeight: 16, leftOffset: 50, columnWidth: 15 },
+    { name: 'crouch',  frameCount: 3,  rowHeight: 16, leftOffset: 50, columnWidth: 15 },
+    { name: 'attack',  frameCount: 5,  rowHeight: 32, leftOffset: 50, columnWidth: 30 },
+    { name: 'jump',    frameCount: 10, rowHeight: 32, leftOffset: 50, columnWidth: 30 }
   ],
 };
 

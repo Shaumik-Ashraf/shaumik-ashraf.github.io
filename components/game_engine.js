@@ -4,11 +4,12 @@ import { createSpriteSheet, SLIME_SHEET_CONFIG } from "./SpriteSheet";
 import SpriteAnimation from "./SpriteAnimation";
 
 // Physics constants — tunable
-const SLIME_W      = 32;   // hitbox width
-const SLIME_H      = 16;   // normal hitbox height
-const SLIME_H_CROUCHING = 8;  // hitbox height when crouching
+const SLIME_W      = 320;   // hitbox width
+const SLIME_H      = 160;   // normal hitbox height
+const SLIME_H_CROUCHING = 80;  // hitbox height when crouching
 const MOVE_SPEED   = 4;    // horizontal velocity (px/tick)
 const JUMP_VEL     = -10;  // vertical velocity on jump
+const SPRITE_SCALE = 8;    // multiplier applied to sprite frame dimensions on draw
 const CANVAS_BG    = '#073642';  // Solarized base02
 
 export default function GameEngine() {
@@ -74,7 +75,7 @@ export default function GameEngine() {
 
     // Sprite setup
     const sheet     = createSpriteSheet(SLIME_SHEET_CONFIG);
-    animRef.current = new SpriteAnimation(sheet, 8);
+    animRef.current = new SpriteAnimation(sheet, 1);
 
     const img = new Image();
     img.src = SLIME_SHEET_CONFIG.src;
@@ -141,13 +142,15 @@ export default function GameEngine() {
     const { x, y } = slime.position;
 
     ctx.save();
-    if (facingLeftRef.current) {
+    const dw = frame.w * SPRITE_SCALE;
+    const dh = frame.h * SPRITE_SCALE;
+    if (!facingLeftRef.current) {
       ctx.scale(-1, 1);
       ctx.drawImage(img, frame.x, frame.y, frame.w, frame.h,
-        -(x + frame.w / 2), y - frame.h / 2, frame.w, frame.h);
+        -(x + dw / 2), y - dh / 2, dw, dh);
     } else {
       ctx.drawImage(img, frame.x, frame.y, frame.w, frame.h,
-        x - frame.w / 2, y - frame.h / 2, frame.w, frame.h);
+        x - dw / 2, y - dh / 2, dw, dh);
     }
     ctx.restore();
   };
