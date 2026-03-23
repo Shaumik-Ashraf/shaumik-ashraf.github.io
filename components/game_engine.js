@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Engine, Render, World, Bodies, Body, Events, Runner, Query } from "matter-js";
-import { createSpriteSheet, SLIME_SHEET_CONFIG } from "./SpriteSheet";
-import SpriteAnimation from "./SpriteAnimation";
+import { createSpriteSheet, SLIME_SHEET_CONFIG } from "./sprite_sheet";
+import SpriteAnimation from "./sprite_animation";
 
 // Physics constants — tunable
 const SLIME_W      = 320;   // hitbox width

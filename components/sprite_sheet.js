@@ -1,10 +1,10 @@
 /**
- * SpriteSheet.js
+ * sprite_sheet.js
  *
  * Pure config module — no React, no Matter.js.
  *
  * Usage:
- *   import { createSpriteSheet, SLIME_SHEET_CONFIG } from './SpriteSheet';
+ *   import { createSpriteSheet, SLIME_SHEET_CONFIG } from './sprite_sheet';
  *   const sheet = createSpriteSheet(SLIME_SHEET_CONFIG);
  *   // sheet.rows['idle'] => { frameCount, columnWidth, leftOffset, rowY, rowHeight }
  *

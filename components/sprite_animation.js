@@ -1,5 +1,5 @@
 /**
- * SpriteAnimation.js
+ * sprite_animation.js
  *
  * Plain class — no React, no Matter.js dependency.
  * Manages animation state: which row is active, which frame within it,
@@ -13,7 +13,7 @@
  */
 export default class SpriteAnimation {
   /**
-   * @param {ReturnType<import('./SpriteSheet').createSpriteSheet>} sheet
+   * @param {ReturnType<import('./sprite_sheet').createSpriteSheet>} sheet
    * @param {number} fps - Frames per second for animation playback
    */
   constructor(sheet, fps = 8) {
