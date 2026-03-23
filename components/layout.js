@@ -2,6 +2,7 @@ import Navbar from './navbar';
 import GameEngine from './game_engine';
 
 export default function Layout({ children }) {
+  const year = new Date().getFullYear();
   return (
     <div id="layoutContainer">
       <div id="layoutContentWrapper">
@@ -13,7 +14,7 @@ export default function Layout({ children }) {
       </div>
       <footer id="layoutFooter" className="text-center text-muted">
         <hr />
-        <p>&copy; 2025 Shaumik Ashraf</p>
+        <p>&copy; {year} Shaumik Ashraf</p>
       </footer>
     </div>
   );

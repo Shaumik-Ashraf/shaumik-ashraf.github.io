@@ -33,6 +33,10 @@ A fun little web app showcasing some websites I like. Built with NextJS and Clau
 
 ## Credits
 
-(C) Shaumik Ashraf 2026
+© Shaumik Ashraf 2026
 
 Sprites created by [Pixelsnorf](https://pixelsnorf.itch.io/platformer-slimes).
+
+## License
+
+See [LICENSE](./LICENSE)
