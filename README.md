@@ -75,3 +75,9 @@ SSL, rate limiting, or other critical features.
 - [React-Bootstrap](https://react-bootstrap.github.io/)
 - [Bootstrap 5](https://getbootstrap.com/)
 - [ReactJS 19](https://react.dev/)
+
+## Credits
+
+Source code developed by yours truly. 
+
+Sprites created by [Pixelsnorf](https://pixelsnorf.itch.io/platformer-slimes).
