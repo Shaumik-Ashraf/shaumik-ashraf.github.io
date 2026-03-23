@@ -9,7 +9,7 @@ const SLIME_H      = 160;   // normal hitbox height
 const SLIME_H_CROUCHING = 80;  // hitbox height when crouching
 const MOVE_SPEED   = 4;    // horizontal velocity (px/tick)
 const JUMP_VEL     = -10;  // vertical velocity on jump
-const SPRITE_SCALE = 8;    // multiplier applied to sprite frame dimensions on draw
+const SPRITE_SCALE = 4;    // multiplier applied to sprite frame dimensions on draw
 const CANVAS_BG    = '#073642';  // Solarized base02
 
 export default function GameEngine() {
