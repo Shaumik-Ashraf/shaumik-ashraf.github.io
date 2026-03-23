@@ -16,7 +16,12 @@
 #gameCanvas {
   width: 100%;
   height: 600px;
-  cursor: crosshair;
+  cursor: default;
+  margin: 1rem 0;
+  border: 2px solid #b58900;
+  border-radius: 4px;
+  background-color: #073642;
+  box-sizing: border-box;
 }
 
 #layoutFooter {
