@@ -1,5 +1,11 @@
 @import "../themes/solar/bootstrap.min.css";
 
+@font-face {
+  font-family: 'HomeVideo';
+  src: url('/assets/fonts/HomeVideoBold-R90Dv.ttf') format('truetype');
+  font-weight: bold;
+}
+
 :root {
   --footer-height: 5rem;
 }

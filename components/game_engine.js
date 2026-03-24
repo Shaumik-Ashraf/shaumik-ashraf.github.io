@@ -25,6 +25,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   const spriteImgRef  = useRef(null);
   const facingLeftRef = useRef(false);
   const crouchingRef  = useRef(false);
+  const pausedRef     = useRef(false);
 
   // Keyboard state: key → boolean
   const keysRef = useRef({});
@@ -143,6 +144,19 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
         x - dw / 2, y - dh / 2, dw, dh);
     }
     ctx.restore();
+
+    if (pausedRef.current) {
+      const { width, height } = render.options;
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = 'bold 72px HomeVideo, monospace';
+      ctx.fillStyle = '#b58900';  // Solarized primary yellow
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('PAUSED', width / 2, height / 2);
+      ctx.restore();
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -210,9 +224,9 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   };
 
   useImperativeHandle(ref, () => ({
-    restart: () => { clearRenderer(); initializeRenderer(); },
-    pause:   () => Runner.stop(runnerRef.current),
-    resume:  () => Runner.run(runnerRef.current, engineRef.current),
+    restart: () => { pausedRef.current = false; clearRenderer(); initializeRenderer(); },
+    pause:   () => { pausedRef.current = true;  Runner.stop(runnerRef.current); },
+    resume:  () => { pausedRef.current = false; Runner.run(runnerRef.current, engineRef.current); },
   }));
 
   useEffect(() => {
