@@ -1,14 +1,16 @@
+import { useRef } from 'react';
 import Navbar from './navbar';
 import GameEngine from './game_engine';
 
 export default function Layout({ children }) {
-  const year = new Date().getFullYear();
+  const year    = new Date().getFullYear();
+  const gameRef = useRef(null);
   return (
     <div id="layoutContainer">
       <div id="layoutContentWrapper">
-        <Navbar />
+        <Navbar gameRef={gameRef} />
         <main className="container">
-          <GameEngine />
+          <GameEngine ref={gameRef} />
           {children}
         </main>
       </div>

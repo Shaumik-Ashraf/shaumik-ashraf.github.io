@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Engine, Render, World, Bodies, Body, Events, Runner, Query } from "matter-js";
 import { createSpriteSheet, SLIME_SHEET_CONFIG } from "./sprite_sheet";
 import SpriteAnimation from "./sprite_animation";
@@ -12,7 +12,7 @@ const JUMP_VEL     = -10;  // vertical velocity on jump
 const SPRITE_SCALE = 4;    // multiplier applied to sprite frame dimensions on draw
 const CANVAS_BG    = '#073642';  // Solarized base02
 
-export default function GameEngine() {
+const GameEngine = forwardRef(function GameEngine(_, ref) {
   const containerRef  = useRef(null);
   const engineRef     = useRef(null);
   const renderRef     = useRef(null);
@@ -209,6 +209,12 @@ export default function GameEngine() {
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    restart: () => { clearRenderer(); initializeRenderer(); },
+    pause:   () => Runner.stop(runnerRef.current),
+    resume:  () => Runner.run(runnerRef.current, engineRef.current),
+  }));
+
   useEffect(() => {
     initializeRenderer();
     window.addEventListener('keydown', handleKeyDown);
@@ -222,4 +228,6 @@ export default function GameEngine() {
   }, []);
 		
 	return <div id="gameCanvas" ref={containerRef} />;
-}
+});
+
+export default GameEngine;
