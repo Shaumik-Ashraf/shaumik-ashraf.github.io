@@ -1,1 +1,12 @@
-{ "data": [ { "url": "https://httpbin.org", "weight": 1.4 } ] }
+{
+  "data": [
+    { "url": "https://www.pointlesssites.com/", "weight": 1.4 },
+    { "url": "https://ohmyz.sh/", "weight": 1.1 },
+    { "url": "https://anonchatgpt.com/", "weight": 1.0 },
+    { "url": "https://www.vim.org/download.php", "weight": 1.0 },
+    { "url": "https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io", "weight": 1.0 },
+    { "url": "https://www.gnu.org/software/emacs/", "weight": 1.0 },
+    { "url": "https://www.spacemacs.org/", "weight": 0.8 },
+    { "url": "https://ncase.me/trust/", "weight": 0.2 }
+  ]
+}
