@@ -8,7 +8,7 @@ const SLIME_W           = 64;
 const SLIME_H           = 64;
 const SLIME_H_CROUCHING = 32;
 const MOVE_SPEED        = 4;
-const JUMP_VEL          = -10;
+const JUMP_VEL          = -25;
 const SPRITE_SCALE      = 4;
 const CANVAS_BG         = '#073642';  // Solarized base02
 
@@ -17,13 +17,13 @@ const TILE_SIZE           = 16;   // source px per tile in sheet
 const TILE_SCALE          = 4;    // rendered px = TILE_SIZE * TILE_SCALE = 64
 const FLOOR_H             = 20;   // physics floor body height
 const FLOOR_SEGMENT_W     = 400;  // width of one floor segment body
-const HOLE_MIN_W          = 60;   // min hole width
-const HOLE_MAX_W          = 140;  // max hole width
+const HOLE_MIN_W          = 96;   // min hole width
+const HOLE_MAX_W          = 192;  // max hole width
 const BASE_PLATFORM_GAP   = 300;  // base x-distance between platforms
 const PLATFORM_GAP_JITTER = 80;   // ± random jitter on gap
 const PLATFORM_W          = 128;  // platform body width
 const PLATFORM_H          = 16;   // platform body height
-const PLATFORM_ELEV_MIN   = 100;  // min y from canvas top
+const PLATFORM_ELEV_MIN   = 75;  // min y from canvas top
 const PLATFORM_ELEV_MAX   = 350;  // max y from canvas top
 const WORLD_LOOKAHEAD     = 800;  // pre-generate this far ahead of slime
 const DESPAWN_MARGIN      = 200;  // remove bodies this far behind camera left edge
@@ -190,7 +190,23 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     img.src   = SLIME_SHEET_CONFIG.src;
     spriteImgRef.current = img;
 
-    // Seed initial world geometry
+    // Seed solid floor under and past the spawn point before allowing holes
+    const floorY     = height - FLOOR_H / 2;
+    const spawnSafeX = width / 2 + SLIME_W / 2;
+    while (nextFloorXRef.current < spawnSafeX) {
+      const cx  = nextFloorXRef.current + FLOOR_SEGMENT_W / 2;
+      const seg = Bodies.rectangle(cx, floorY, FLOOR_SEGMENT_W, FLOOR_H, {
+        isStatic: true,
+        friction: 0.5,
+        render:   { opacity: 0 },
+        label:    'floor',
+      });
+      World.add(engineRef.current.world, seg);
+      floorSegmentsRef.current.push(seg);
+      nextFloorXRef.current += FLOOR_SEGMENT_W;
+    }
+
+    // Seed initial world geometry (holes allowed from here on)
     generateFloor();
     generatePlatforms();
 
