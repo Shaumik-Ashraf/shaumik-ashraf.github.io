@@ -37,6 +37,9 @@ const PORTAL_H          = 64;
 const BASE_PORTAL_GAP   = 1200;  // less frequent than platforms
 const PORTAL_GAP_JITTER = 400;
 
+// Developer tools
+const WIREFRAMES = false;   // enable hitbox wireframes
+
 const GameEngine = forwardRef(function GameEngine(_, ref) {
   const containerRef  = useRef(null);
   const engineRef     = useRef(null);
@@ -226,7 +229,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     renderRef.current = Render.create({
       element: containerRef.current,
       engine:  engineRef.current,
-      options: { width, height, wireframes: true, background: CANVAS_BG, hasBounds: true },
+      options: { width, height, wireframes: WIREFRAMES, background: CANVAS_BG, hasBounds: true },
     });
 
     // Reset world state
