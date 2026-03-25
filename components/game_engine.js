@@ -369,6 +369,20 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
   const handleKeyDown = (e) => {
     const key = e.key.toLowerCase();
+
+    if (e.key === ' ') {
+      e.preventDefault();
+      if (gameOverRef.current) return;
+      if (pausedRef.current) {
+        pausedRef.current = false;
+        Runner.run(runnerRef.current, engineRef.current);
+      } else {
+        pausedRef.current = true;
+        Runner.stop(runnerRef.current);
+      }
+      return;
+    }
+
     keysRef.current[key] = true;
 
     if (key === 's' && !crouchingRef.current) {
