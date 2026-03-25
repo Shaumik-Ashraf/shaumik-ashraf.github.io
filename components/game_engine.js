@@ -66,9 +66,14 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     const bx    = body.position.x - bodyW / 2;
     const by    = body.position.y - bodyH / 2;
     const cols  = Math.ceil(bodyW / dTile);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(bx, by, bodyW, bodyH);
+    ctx.clip();
     for (let i = 0; i < cols; i++) {
       ctx.drawImage(img, srcX, srcY, TILE_SIZE, TILE_SIZE, bx + i * dTile, by, dTile, dTile);
     }
+    ctx.restore();
   };
 
   // ---------------------------------------------------------------------------
@@ -383,9 +388,11 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   };
 
   const swapHitbox = (w, h) => {
-    const world     = engineRef.current.world;
-    const old       = slimeRef.current;
-    const { x, y }  = old.position;
+    const world = engineRef.current.world;
+    const old   = slimeRef.current;
+    const x     = old.position.x;
+    // Anchor bottom of new body to bottom of old body so feet don't shift
+    const y     = old.bounds.max.y - h / 2;
 
     World.remove(world, old);
     const next = Bodies.rectangle(x, y, w, h, {
