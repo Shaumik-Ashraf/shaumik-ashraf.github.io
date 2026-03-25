@@ -5,7 +5,7 @@ import SpriteAnimation from "./sprite_animation";
 
 // Player constants — tunable
 const SLIME_W           = 64;
-const SLIME_H           = 64;
+const SLIME_H           = 48;
 const SLIME_H_CROUCHING = 32;
 const MOVE_SPEED        = 4;
 const JUMP_VEL          = -25;
@@ -153,7 +153,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     renderRef.current = Render.create({
       element: containerRef.current,
       engine:  engineRef.current,
-      options: { width, height, wireframes: false, background: CANVAS_BG },
+      options: { width, height, wireframes: true, background: CANVAS_BG, hasBounds: true },
     });
 
     // Reset world state
@@ -234,6 +234,9 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     // 1. Update camera
     cameraXRef.current = slime.position.x - canvasW / 3;
+    const render = renderRef.current;
+    render.bounds.min.x = cameraXRef.current;
+    render.bounds.max.x = cameraXRef.current + canvasW;
 
     // 2. Generate world ahead and despawn behind
     generateFloor();
