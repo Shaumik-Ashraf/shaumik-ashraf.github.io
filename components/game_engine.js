@@ -1,7 +1,9 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { Engine, Render, World, Bodies, Body, Events, Runner, Query } from "matter-js";
 import { createSpriteSheet, SLIME_SHEET_CONFIG } from "./sprite_sheet";
 import SpriteAnimation from "./sprite_animation";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 
 // Player constants — tunable
 const SLIME_W           = 64;
@@ -23,11 +25,17 @@ const BASE_PLATFORM_GAP   = 300;  // base x-distance between platforms
 const PLATFORM_GAP_JITTER = 80;   // ± random jitter on gap
 const PLATFORM_W          = 128;  // platform body width
 const PLATFORM_H          = 16;   // platform body height
-const PLATFORM_ELEV_MIN   = 75;  // min y from canvas top
+const PLATFORM_ELEV_MIN   = 75;   // min y from canvas top
 const PLATFORM_ELEV_MAX   = 350;  // max y from canvas top
 const WORLD_LOOKAHEAD     = 800;  // pre-generate this far ahead of slime
 const DESPAWN_MARGIN      = 200;  // remove bodies this far behind camera left edge
 const GAME_OVER_THRESHOLD = 200;  // px below canvas bottom triggers game over
+
+// Portal constants — tunable
+const PORTAL_W          = 64;    // TILE_SIZE * TILE_SCALE — one rendered tile
+const PORTAL_H          = 64;
+const BASE_PORTAL_GAP   = 1200;  // less frequent than platforms
+const PORTAL_GAP_JITTER = 400;
 
 const GameEngine = forwardRef(function GameEngine(_, ref) {
   const containerRef  = useRef(null);
@@ -52,6 +60,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   const cameraXRef        = useRef(0);
   const gameOverRef       = useRef(false);
 
+  // Portals
+  const portalsRef      = useRef([]);   // [{ body, url }]
+  const nextPortalXRef  = useRef(0);
+  const portalImgRef    = useRef(null); // DarkCastleGrid.png
+  const urlPoolRef      = useRef([]);   // loaded from data.json
+
+  // Portal modal state — triggers re-render to show confirmation dialog
+  const [portalModal, setPortalModal] = useState(null); // { url, body } | null
+
   // Keyboard state: key → boolean
   const keysRef = useRef({});
 
@@ -74,6 +91,25 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       ctx.drawImage(img, srcX, srcY, TILE_SIZE, TILE_SIZE, bx + i * dTile, by, dTile, dTile);
     }
     ctx.restore();
+  };
+
+  // ---------------------------------------------------------------------------
+  // Portal URL picker — weighted random selection from urlPoolRef
+  // ---------------------------------------------------------------------------
+
+  const pickUrl = () => {
+    const fallbackUrl = "https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io";
+    const pool = urlPoolRef.current;
+    if (!pool.length) return fallbackUrl;
+
+    const total = pool.reduce((s, e) => s + (e.weight ?? 1.0), 0);
+    let r = Math.random() * total;
+    for (const e of pool) {
+      r -= (e.weight ?? 1.0);
+      if (r <= 0) return e.url;
+    }
+
+    return fallbackUrl;
   };
 
   // ---------------------------------------------------------------------------
@@ -128,6 +164,33 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     }
   };
 
+  const generatePortals = () => {
+    const world  = engineRef.current.world;
+    const render = renderRef.current;
+    if (!world || !render) return;
+
+    const { height: canvasH } = render.options;
+    const portalY  = canvasH - FLOOR_H - PORTAL_H / 2;
+    const targetX  = slimeRef.current.position.x + WORLD_LOOKAHEAD;
+
+    while (nextPortalXRef.current < targetX) {
+      const jitter = (Math.random() * 2 - 1) * PORTAL_GAP_JITTER;
+      const spawnX = nextPortalXRef.current + BASE_PORTAL_GAP + jitter;
+      const url    = pickUrl();
+      if (url) {
+        const body = Bodies.rectangle(spawnX, portalY, PORTAL_W, PORTAL_H, {
+          isStatic: true,
+          isSensor: true,
+          render:   { opacity: 0 },
+          label:    'portal',
+        });
+        World.add(world, body);
+        portalsRef.current.push({ body, url });
+      }
+      nextPortalXRef.current = spawnX;
+    }
+  };
+
   const despawnBodies = () => {
     const world  = engineRef.current.world;
     const cutoff = cameraXRef.current - DESPAWN_MARGIN;
@@ -139,6 +202,11 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     platformsRef.current = platformsRef.current.filter(b => {
       if (b.position.x < cutoff) { World.remove(world, b); return false; }
+      return true;
+    });
+
+    portalsRef.current = portalsRef.current.filter(p => {
+      if (p.body.position.x < cutoff) { World.remove(world, p.body); return false; }
       return true;
     });
   };
@@ -164,10 +232,12 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Reset world state
     floorSegmentsRef.current  = [];
     platformsRef.current      = [];
+    portalsRef.current        = [];
     cameraXRef.current        = 0;
     gameOverRef.current       = false;
     nextFloorXRef.current     = -FLOOR_SEGMENT_W;  // first segment spans [-400, 0]
     nextPlatformXRef.current  = width;              // no platforms under spawn point
+    nextPortalXRef.current    = width * 2;          // first portal well past spawn
 
     // Tile image — reuse across restarts
     if (!tileImgRef.current) {
@@ -175,6 +245,19 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       tileImg.src   = '/assets/sprites/BasicGreenGrid.png';
       tileImgRef.current = tileImg;
     }
+
+    // Portal tile image — reuse across restarts
+    if (!portalImgRef.current) {
+      const portalImg = new Image();
+      portalImg.src   = '/assets/sprites/DarkCastleGrid.png';
+      portalImgRef.current = portalImg;
+    }
+
+    // Load URL pool for portal assignment
+    fetch('/data.json')
+      .then(r => r.json())
+      .then(({ data }) => { urlPoolRef.current = data ?? []; })
+      .catch(() => {});
 
     // Player body — invisible; sprite drawn via afterRender
     slimeRef.current = Bodies.rectangle(width / 2, 40, SLIME_W, SLIME_H, {
@@ -214,6 +297,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Seed initial world geometry (holes allowed from here on)
     generateFloor();
     generatePlatforms();
+    generatePortals();
 
     Events.on(engineRef.current, 'afterUpdate', onTick);
     Events.on(renderRef.current, 'afterRender', onDraw);
@@ -246,6 +330,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // 2. Generate world ahead and despawn behind
     generateFloor();
     generatePlatforms();
+    generatePortals();
     despawnBodies();
 
     // 3. Ground check against all surfaces
@@ -253,6 +338,20 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       slime,
       [...floorSegmentsRef.current, ...platformsRef.current]
     ).length > 0;
+
+    // 3b. Portal collision — stop runner (pause) and show modal on first contact
+    if (portalsRef.current.length) {
+      const portalBodies = portalsRef.current.map(p => p.body);
+      const hit = Query.collides(slime, portalBodies);
+      if (hit.length > 0) {
+        const hitBody = hit[0].bodyA === slime ? hit[0].bodyB : hit[0].bodyA;
+        const portal  = portalsRef.current.find(p => p.body === hitBody);
+        if (portal) {
+          Runner.stop(runnerRef.current);
+          setPortalModal({ url: portal.url, body: portal.body });
+        }
+      }
+    }
 
     // 4. Horizontal movement
     if (keys['a']) {
@@ -315,6 +414,13 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       }
       for (const plat of platformsRef.current) {
         drawTiledBody(ctx, tileImg, plat, PLATFORM_W, PLATFORM_H, 7, 2);
+      }
+    }
+
+    const portalImg = portalImgRef.current;
+    if (portalImg && portalImg.complete) {
+      for (const p of portalsRef.current) {
+        drawTiledBody(ctx, portalImg, p.body, PORTAL_W, PORTAL_H, 2, 4);
       }
     }
 
@@ -448,11 +554,14 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     floorSegmentsRef.current  = [];
     platformsRef.current      = [];
+    portalsRef.current        = [];
     nextFloorXRef.current     = 0;
     nextPlatformXRef.current  = 0;
+    nextPortalXRef.current    = 0;
     cameraXRef.current        = 0;
     gameOverRef.current       = false;
-    // tileImgRef intentionally kept — reused across restarts
+    setPortalModal(null);
+    // tileImgRef / portalImgRef intentionally kept — reused across restarts
   };
 
   // ---------------------------------------------------------------------------
@@ -477,7 +586,38 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     };
   }, []);
 
-  return <div id="gameCanvas" ref={containerRef} />;
+  const handlePortalYes = () => {
+    if (portalModal) window.location.href = portalModal.url;
+  };
+
+  const handlePortalNo = () => {
+    if (portalModal) {
+      portalsRef.current = portalsRef.current.filter(p => p.body !== portalModal.body);
+      World.remove(engineRef.current.world, portalModal.body);
+    }
+    setPortalModal(null);
+    Runner.run(runnerRef.current, engineRef.current);
+  };
+
+  return (
+    <>
+      <div id="gameCanvas" ref={containerRef} />
+      {portalModal && (
+        <Modal show onHide={handlePortalNo} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>You found a portal!</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Navigate to <strong>{portalModal.url}</strong>?
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary"   onClick={handlePortalYes}>Yes</Button>
+            <Button variant="secondary" onClick={handlePortalNo}>No</Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+    </>
+  );
 });
 
 export default GameEngine;
