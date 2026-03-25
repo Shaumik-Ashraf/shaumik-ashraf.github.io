@@ -25,7 +25,7 @@ const BASE_PLATFORM_GAP   = 300;  // base x-distance between platforms
 const PLATFORM_GAP_JITTER = 80;   // ± random jitter on gap
 const PLATFORM_W          = 128;  // platform body width
 const PLATFORM_H          = 16;   // platform body height
-const PLATFORM_ELEV_MIN   = 75;  // min y from canvas top
+const PLATFORM_ELEV_MIN   = 75;   // min y from canvas top
 const PLATFORM_ELEV_MAX   = 350;  // max y from canvas top
 const WORLD_LOOKAHEAD     = 800;  // pre-generate this far ahead of slime
 const DESPAWN_MARGIN      = 200;  // remove bodies this far behind camera left edge
@@ -98,15 +98,18 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   // ---------------------------------------------------------------------------
 
   const pickUrl = () => {
+    const fallbackUrl = "https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io";
     const pool = urlPoolRef.current;
-    if (!pool.length) return null;
+    if (!pool.length) return fallbackUrl;
+
     const total = pool.reduce((s, e) => s + (e.weight ?? 1.0), 0);
     let r = Math.random() * total;
     for (const e of pool) {
       r -= (e.weight ?? 1.0);
       if (r <= 0) return e.url;
     }
-    return pool[pool.length - 1].url;
+
+    return fallbackUrl;
   };
 
   // ---------------------------------------------------------------------------
