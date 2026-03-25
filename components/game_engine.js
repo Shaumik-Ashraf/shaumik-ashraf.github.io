@@ -420,7 +420,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     const portalImg = portalImgRef.current;
     if (portalImg && portalImg.complete) {
       for (const p of portalsRef.current) {
-        drawTiledBody(ctx, portalImg, p.body, PORTAL_W, PORTAL_H, 3, 5);
+        drawTiledBody(ctx, portalImg, p.body, PORTAL_W, PORTAL_H, 2, 4);
       }
     }
 
@@ -591,7 +591,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       {portalModal && (
         <Modal show onHide={handlePortalNo} centered>
           <Modal.Header closeButton>
-            <Modal.Title>Portal</Modal.Title>
+            <Modal.Title>You found a portal!</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             Navigate to <strong>{portalModal.url}</strong>?
