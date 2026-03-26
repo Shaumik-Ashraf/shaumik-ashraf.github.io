@@ -5,7 +5,7 @@ import SpriteAnimation from "./sprite_animation";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
-// Player constants — tunable
+// Player constants
 const SLIME_W           = 64;
 const SLIME_H           = 48;
 const SLIME_H_CROUCHING = 32;
@@ -14,7 +14,7 @@ const JUMP_VEL          = -25;
 const SPRITE_SCALE      = 4;
 const CANVAS_BG         = '#073642';  // Solarized base02
 
-// World generation constants — tunable
+// World generation constants
 const TILE_SIZE           = 16;   // source px per tile in sheet
 const TILE_SCALE          = 4;    // rendered px = TILE_SIZE * TILE_SCALE = 64
 const FLOOR_H             = 20;   // physics floor body height
@@ -31,13 +31,13 @@ const WORLD_LOOKAHEAD     = 800;  // pre-generate this far ahead of slime
 const DESPAWN_MARGIN      = 200;  // remove bodies this far behind camera left edge
 const GAME_OVER_THRESHOLD = 200;  // px below canvas bottom triggers game over
 
-// Portal constants — tunable
+// Portal constants
 const PORTAL_W          = 64;    // TILE_SIZE * TILE_SCALE — one rendered tile
 const PORTAL_H          = 64;
 const BASE_PORTAL_GAP   = 1200;  // less frequent than platforms
 const PORTAL_GAP_JITTER = 400;
 
-// BGM — top-level parameter
+// Background music file
 const BGM_SRC = '/assets/music/Raydee99_AHappyLittleValley.wav';
 
 // Developer tools

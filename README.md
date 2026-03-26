@@ -37,6 +37,8 @@ A fun little web app showcasing some websites I like. Built with NextJS and Clau
 
 Sprites created by [Pixelsnorf](https://pixelsnorf.itch.io/platformer-slimes) and [SciGho](https://ninjikin.itch.io/starter-tiles).
 
+Music created by [Raydee99](https://raydee99.com).
+
 ## License
 
 See [LICENSE](./LICENSE).

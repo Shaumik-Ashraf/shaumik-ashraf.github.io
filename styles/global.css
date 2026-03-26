@@ -31,6 +31,38 @@
   overflow: hidden;
 }
 
+/* Range slider — gray (--bs-secondary) across all browsers */
+input[type="range"] {
+  accent-color: var(--bs-secondary);
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+input[type="range"]::-webkit-slider-thumb {
+  background: var(--bs-secondary);
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--bs-secondary);
+  opacity: 0.25;
+}
+input[type="range"]::-webkit-slider-thumb:hover,
+input[type="range"]:focus::-webkit-slider-thumb {
+  background: var(--bs-secondary);
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-secondary-rgb), 0.25);
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-thumb {
+  background: var(--bs-secondary);
+  border: none;
+}
+input[type="range"]::-moz-range-track {
+  background: var(--bs-secondary);
+  opacity: 0.25;
+}
+input[type="range"]::-moz-range-progress {
+  background: var(--bs-secondary);
+}
+
 #layoutFooter {
   position: absolute;
   bottom: 0;
