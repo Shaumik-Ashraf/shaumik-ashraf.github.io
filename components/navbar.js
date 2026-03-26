@@ -3,9 +3,11 @@ import { useRouter } from 'next/router';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
+import { useGame } from '../contexts/game_context';
 
-export function AppNavbar({ gameRef }) {
-  const router = useRouter();
+export function AppNavbar() {
+  const router  = useRouter();
+  const gameRef = useGame();
   const [paused, setPaused] = useState(false);
 
   const handleRestart = () => {

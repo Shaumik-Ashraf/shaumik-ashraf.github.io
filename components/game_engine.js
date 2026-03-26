@@ -37,6 +37,9 @@ const PORTAL_H          = 64;
 const BASE_PORTAL_GAP   = 1200;  // less frequent than platforms
 const PORTAL_GAP_JITTER = 400;
 
+// BGM — top-level parameter
+const BGM_SRC = '/assets/music/Raydee99_AHappyLittleValley.wav';
+
 // Developer tools
 const WIREFRAMES = false;   // enable hitbox wireframes
 
@@ -45,6 +48,9 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   const engineRef     = useRef(null);
   const renderRef     = useRef(null);
   const runnerRef     = useRef(null);
+
+  // Audio
+  const audioRef      = useRef(null);
 
   // Player
   const slimeRef      = useRef(null);
@@ -389,6 +395,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     if (slime.position.y > canvasH + GAME_OVER_THRESHOLD) {
       gameOverRef.current = true;
       Runner.stop(runnerRef.current);
+      audioRef.current?.pause();
     }
   };
 
@@ -485,9 +492,11 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       if (pausedRef.current) {
         pausedRef.current = false;
         Runner.run(runnerRef.current, engineRef.current);
+        audioRef.current?.play().catch(() => {});
       } else {
         pausedRef.current = true;
         Runner.stop(runnerRef.current);
+        audioRef.current?.pause();
       }
       return;
     }
@@ -572,17 +581,60 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   // ---------------------------------------------------------------------------
 
   useImperativeHandle(ref, () => ({
-    restart: () => { pausedRef.current = false; clearRenderer(); initializeRenderer(); },
-    pause:   () => { pausedRef.current = true;  Runner.stop(runnerRef.current); },
-    resume:  () => { pausedRef.current = false; Runner.run(runnerRef.current, engineRef.current); },
+    restart: () => {
+      pausedRef.current = false;
+      clearRenderer();
+      initializeRenderer();
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+      }
+    },
+    pause: () => {
+      pausedRef.current = true;
+      Runner.stop(runnerRef.current);
+      audioRef.current?.pause();
+    },
+    resume: () => {
+      pausedRef.current = false;
+      Runner.run(runnerRef.current, engineRef.current);
+      audioRef.current?.play().catch(() => {});
+    },
+    setVolume: (v) => {
+      if (audioRef.current) audioRef.current.volume = v;
+    },
+    getVolume: () => audioRef.current?.volume ?? 1,
+    mute: () => {
+      if (audioRef.current) audioRef.current.muted = true;
+    },
+    unmute: () => {
+      if (audioRef.current) audioRef.current.muted = false;
+    },
+    isMuted: () => audioRef.current?.muted ?? false,
   }));
 
   useEffect(() => {
+    // Init audio — persists for component lifetime (not reset on restart)
+    const audio  = new Audio(BGM_SRC);
+    audio.loop   = true;
+    audioRef.current = audio;
+
+    // Browsers block autoplay until first user interaction; retry on first keydown
+    audio.play().catch(() => {
+      const startOnInteraction = () => {
+        audio.play().catch(() => {});
+        window.removeEventListener('keydown', startOnInteraction);
+      };
+      window.addEventListener('keydown', startOnInteraction);
+    });
+
     initializeRenderer();
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup',   handleKeyUp);
 
     return () => {
+      audio.pause();
+      audioRef.current = null;
       clearRenderer();
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup',   handleKeyUp);
