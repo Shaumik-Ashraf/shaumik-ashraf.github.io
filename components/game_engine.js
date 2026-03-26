@@ -122,6 +122,28 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   };
 
   // ---------------------------------------------------------------------------
+  // World-anchored text entity helper
+  //
+  // Draws text at fixed positions inside the game world.
+  //
+  // Entity shape:
+  //   { font, color, lines: [{ text, x, y, align }] }
+  //   x and y are screen-space pixel coords.
+  // ---------------------------------------------------------------------------
+
+  const drawWorldText = (ctx, cameraX, entity) => {
+    ctx.save();
+    ctx.font         = entity.font;
+    ctx.fillStyle    = entity.color;
+    ctx.textBaseline = 'top';
+    for (const line of entity.lines) {
+      ctx.textAlign = line.align ?? 'left';
+      ctx.fillText(line.text, line.x, line.y);
+    }
+    ctx.restore();
+  };
+
+  // ---------------------------------------------------------------------------
   // World generation helpers
   // ---------------------------------------------------------------------------
 
@@ -450,6 +472,45 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
         x - dw / 2, y - dh / 2, dw, dh);
     }
     ctx.restore();
+
+    // Welcome text — world-anchored at (cameraX + screenX) so it stays
+    // fixed on screen while remaining inside the world-space transform block.
+    {
+      const PAD       = 16;
+      const LINE_H    = 34;
+      const ICON_SIZE = 40;
+      const cameraX   = cameraXRef.current;
+
+      drawWorldText(ctx, cameraX, {
+        font:  '28px HomeVideo, monospace',
+        color: '#ffffff',
+        lines: [
+          // Top-center: welcome header
+          { text: 'Welcome Denizen of the Internet', x: width / 2,                                 y: PAD,              align: 'center' },
+          // Top-left: how to play
+          { text: 'How to play:',                    x: PAD,                                       y: PAD + LINE_H,     align: 'left'   },
+          { text: 'W \u2014 jump',                   x: PAD,                                       y: PAD + LINE_H * 2, align: 'left'   },
+          { text: 'A \u2014 move left',              x: PAD,                                       y: PAD + LINE_H * 3, align: 'left'   },
+          { text: 'S \u2014 crouch',                 x: PAD,                                       y: PAD + LINE_H * 4, align: 'left'   },
+          { text: 'D \u2014 move right',             x: PAD,                                       y: PAD + LINE_H * 5, align: 'left'   },
+          { text: 'SPACE \u2014 pause',              x: PAD,                                       y: PAD + LINE_H * 6, align: 'left'   },
+          // Top-right: hint
+          { text: 'Hint:',                           x: width * 3 / 4 - PAD,                       y: PAD + LINE_H,     align: 'right'  },
+          { text: 'Find these portals to',           x: width * 3 / 4 - PAD - ICON_SIZE - PAD / 2, y: PAD + LINE_H * 2, align: 'right'  },
+          { text: 'keep surfing the web:',           x: width * 3 / 4 - PAD - ICON_SIZE - PAD / 2, y: PAD + LINE_H * 3, align: 'right'  }
+        ],
+      });
+
+      // Portal icon — draw *without* cameraX to fix
+      if (portalImg && portalImg.complete) {
+        const srcX = 2 * 17 + 1;  // col=2, row=4 in DarkCastleGrid.png
+        const srcY = 4 * 17 + 1;
+        ctx.drawImage(
+          portalImg, srcX, srcY, TILE_SIZE, TILE_SIZE,
+          width * 3 / 4 - PAD - ICON_SIZE, PAD + LINE_H * 3, ICON_SIZE, ICON_SIZE
+        );
+      }
+    }
 
     ctx.restore();  // end world-space
 

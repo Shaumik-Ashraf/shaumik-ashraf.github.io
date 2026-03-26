@@ -6,6 +6,12 @@
   font-weight: bold;
 }
 
+@font-face {
+  font-family: 'HomeVideo';
+  src: url('/assets/fonts/HomeVideo-BLG6G.ttf') format('truetype');
+  font-weight: normal;
+}
+
 :root {
   --footer-height: 5rem;
 }
