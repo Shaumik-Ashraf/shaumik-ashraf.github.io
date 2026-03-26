@@ -37,6 +37,18 @@ const PORTAL_H          = 64;
 const BASE_PORTAL_GAP   = 600;  // less frequent than platforms
 const PORTAL_GAP_JITTER = 400;
 
+// Left-world preseeding
+const SECRET_FLOOR_LEFT = -2000;  // westernmost floor edge; pre-seeded solid to spawn
+
+// Secret (rick-roll) portal
+const SECRET_PORTAL_URL        = 'https://www.youtube.com/watch?v=doEqUhFiQS4';
+const SECRET_PORTAL_SPRITE_SRC = '/assets/sprites/FireSetGrid.png';
+const SECRET_PORTAL_TILE_COL   = 3;    // col 4, 1-indexed
+const SECRET_PORTAL_TILE_ROW   = 4;    // row 5, 1-indexed
+const SECRET_PORTAL_W          = 128;
+const SECRET_PORTAL_H          = 128;
+const SECRET_PORTAL_X          = -2000; // world-space x center
+
 // Tile sheet layout
 const TILE_SHEET_PITCH  = TILE_SIZE + 1;  // px stride between tile origins in the sheet (tile width + 1px separation gap)
 const TILE_SHEET_OFFSET = 1;              // px offset to the first tile's left edge (skips the 1px border before col 0)
@@ -110,6 +122,10 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   const portalImgRef    = useRef(null); // DarkCastleGrid.png
   const urlPoolRef      = useRef([]);   // loaded from data.json
 
+  // Secret portal
+  const secretPortalRef    = useRef(null); // { body }
+  const secretPortalImgRef = useRef(null); // FireSetGrid.png
+
   // Portal modal state — triggers re-render to show confirmation dialog
   const [portalModal, setPortalModal] = useState(null); // { url, body } | null
 
@@ -127,12 +143,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     const bx    = body.position.x - bodyW / 2;
     const by    = body.position.y - bodyH / 2;
     const cols  = Math.ceil(bodyW / dTile);
+    const rows  = Math.ceil(bodyH / dTile);
     ctx.save();
     ctx.beginPath();
     ctx.rect(bx, by, bodyW, bodyH);
     ctx.clip();
-    for (let i = 0; i < cols; i++) {
-      ctx.drawImage(img, srcX, srcY, TILE_SIZE, TILE_SIZE, bx + i * dTile, by, dTile, dTile);
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        ctx.drawImage(img, srcX, srcY, TILE_SIZE, TILE_SIZE, bx + i * dTile, by + j * dTile, dTile, dTile);
+      }
     }
     ctx.restore();
   };
@@ -301,7 +320,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     portalsRef.current        = [];
     cameraXRef.current        = 0;
     gameOverRef.current       = false;
-    nextFloorXRef.current     = -FLOOR_SEGMENT_W;  // first segment spans [-400, 0]
+    nextFloorXRef.current     = SECRET_FLOOR_LEFT;  // solid floor pre-seeded from here to spawn
     nextPlatformXRef.current  = width;              // no platforms under spawn point
     nextPortalXRef.current    = width * 2;          // first portal well past spawn
 
@@ -317,6 +336,13 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       const portalImg = new Image();
       portalImg.src   = PORTAL_SPRITE_SRC;
       portalImgRef.current = portalImg;
+    }
+
+    // Secret portal tile image — reuse across restarts
+    if (!secretPortalImgRef.current) {
+      const img = new Image();
+      img.src   = SECRET_PORTAL_SPRITE_SRC;
+      secretPortalImgRef.current = img;
     }
 
     // Load URL pool for portal assignment
@@ -364,6 +390,20 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     generateFloor();
     generatePlatforms();
     generatePortals();
+
+    // Secret portal — fixed at far-left end of pre-seeded floor
+    {
+      const { height: canvasH } = renderRef.current.options;
+      const portalY = canvasH - FLOOR_H - SECRET_PORTAL_H / 2;
+      const body = Bodies.rectangle(SECRET_PORTAL_X, portalY, SECRET_PORTAL_W, SECRET_PORTAL_H, {
+        isStatic: true,
+        isSensor: true,
+        render:   { opacity: 0 },
+        label:    'secretPortal',
+      });
+      World.add(engineRef.current.world, body);
+      secretPortalRef.current = { body };
+    }
 
     Events.on(engineRef.current, 'afterUpdate', onTick);
     Events.on(renderRef.current, 'afterRender', onDraw);
@@ -416,6 +456,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
           Runner.stop(runnerRef.current);
           setPortalModal({ url: portal.url, body: portal.body });
         }
+      }
+    }
+
+    // 3c. Secret portal collision — stop runner then redirect, no modal
+    if (secretPortalRef.current) {
+      const hit = Query.collides(slime, [secretPortalRef.current.body]);
+      if (hit.length > 0) {
+        Runner.stop(runnerRef.current);
+        window.location.href = SECRET_PORTAL_URL;
       }
     }
 
@@ -489,6 +538,16 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       for (const p of portalsRef.current) {
         drawTiledBody(ctx, portalImg, p.body, PORTAL_W, PORTAL_H, PORTAL_TILE_COL, PORTAL_TILE_ROW);
       }
+    }
+
+    const secretPortalImg = secretPortalImgRef.current;
+    if (secretPortalImg && secretPortalImg.complete && secretPortalRef.current) {
+      drawTiledBody(
+        ctx, secretPortalImg,
+        secretPortalRef.current.body,
+        SECRET_PORTAL_W, SECRET_PORTAL_H,
+        SECRET_PORTAL_TILE_COL, SECRET_PORTAL_TILE_ROW
+      );
     }
 
     // Slime sprite
@@ -654,13 +713,14 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     floorSegmentsRef.current  = [];
     platformsRef.current      = [];
     portalsRef.current        = [];
+    secretPortalRef.current   = null;
     nextFloorXRef.current     = 0;
     nextPlatformXRef.current  = 0;
     nextPortalXRef.current    = 0;
     cameraXRef.current        = 0;
     gameOverRef.current       = false;
     setPortalModal(null);
-    // tileImgRef / portalImgRef intentionally kept — reused across restarts
+    // tileImgRef / portalImgRef / secretPortalImgRef intentionally kept — reused across restarts
   };
 
   // ---------------------------------------------------------------------------
