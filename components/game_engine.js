@@ -37,6 +37,41 @@ const PORTAL_H          = 64;
 const BASE_PORTAL_GAP   = 1200;  // less frequent than platforms
 const PORTAL_GAP_JITTER = 400;
 
+// Tile sheet layout
+const TILE_SHEET_PITCH  = TILE_SIZE + 1;  // px stride between tile origins in the sheet (tile width + 1px separation gap)
+const TILE_SHEET_OFFSET = 1;              // px offset to the first tile's left edge (skips the 1px border before col 0)
+
+// Tile column/row positions in sprite sheets
+const FLOOR_TILE_COL    = 0;
+const FLOOR_TILE_ROW    = 2;
+const PLATFORM_TILE_COL = 7;
+const PLATFORM_TILE_ROW = 2;
+const PORTAL_TILE_COL   = 2;
+const PORTAL_TILE_ROW   = 4;
+
+// Physics properties
+const BODY_FRICTION      = 0.5;   // friction for floors, platforms, and player body
+const SLIME_FRICTION_AIR = 0.05;  // air drag on the player body
+
+// Player spawn position
+const SLIME_SPAWN_Y = 40;  // px from canvas top for initial player spawn
+
+// Camera
+const CAMERA_LEAD_DIVISOR = 3;  // player appears 1/N of the way from canvas left
+
+// Asset paths
+const TILE_SPRITE_SRC   = '/assets/sprites/BasicGreenGrid.png';
+const PORTAL_SPRITE_SRC = '/assets/sprites/DarkCastleGrid.png';
+const PORTAL_DATA_SRC   = '/data.json';
+const PORTAL_FALLBACK   = 'https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io';
+
+// Overlay UI
+const OVERLAY_FONT          = 'bold 72px HomeVideo, monospace';
+const PAUSE_OVERLAY_FILL    = 'rgba(0, 0, 0, 0.45)';
+const GAMEOVER_OVERLAY_FILL = 'rgba(0, 0, 0, 0.55)';
+const COLOR_PAUSE_TEXT      = '#b58900';  // Solarized yellow
+const COLOR_GAMEOVER_TEXT   = '#dc322f';  // Solarized red
+
 // Background music file
 const BGM_SRC = '/assets/music/Raydee99_AHappyLittleValley.wav';
 
@@ -86,8 +121,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   // ---------------------------------------------------------------------------
 
   const drawTiledBody = (ctx, img, body, bodyW, bodyH, tileCol, tileRow) => {
-    const srcX  = tileCol * 17 + 1;  // 1px gap between tiles in sheet
-    const srcY  = tileRow * 17 + 1;
+    const srcX  = tileCol * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
+    const srcY  = tileRow * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
     const dTile = TILE_SIZE * TILE_SCALE;
     const bx    = body.position.x - bodyW / 2;
     const by    = body.position.y - bodyH / 2;
@@ -107,7 +142,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   // ---------------------------------------------------------------------------
 
   const pickUrl = () => {
-    const fallbackUrl = "https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io";
+    const fallbackUrl = PORTAL_FALLBACK;
     const pool = urlPoolRef.current;
     if (!pool.length) return fallbackUrl;
 
@@ -159,7 +194,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       const cx  = nextFloorXRef.current + FLOOR_SEGMENT_W / 2;
       const seg = Bodies.rectangle(cx, floorY, FLOOR_SEGMENT_W, FLOOR_H, {
         isStatic: true,
-        friction: 0.5,
+        friction: BODY_FRICTION,
         render:   { opacity: 0 },
         label:    'floor',
       });
@@ -184,7 +219,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
       const plat = Bodies.rectangle(spawnX, spawnY, PLATFORM_W, PLATFORM_H, {
         isStatic: true,
-        friction: 0.5,
+        friction: BODY_FRICTION,
         render:   { opacity: 0 },
         label:    'platform',
       });
@@ -273,27 +308,27 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Tile image — reuse across restarts
     if (!tileImgRef.current) {
       const tileImg = new Image();
-      tileImg.src   = '/assets/sprites/BasicGreenGrid.png';
+      tileImg.src   = TILE_SPRITE_SRC;
       tileImgRef.current = tileImg;
     }
 
     // Portal tile image — reuse across restarts
     if (!portalImgRef.current) {
       const portalImg = new Image();
-      portalImg.src   = '/assets/sprites/DarkCastleGrid.png';
+      portalImg.src   = PORTAL_SPRITE_SRC;
       portalImgRef.current = portalImg;
     }
 
     // Load URL pool for portal assignment
-    fetch('/data.json')
+    fetch(PORTAL_DATA_SRC)
       .then(r => r.json())
       .then(({ data }) => { urlPoolRef.current = data ?? []; })
       .catch(() => {});
 
     // Player body — invisible; sprite drawn via afterRender
-    slimeRef.current = Bodies.rectangle(width / 2, 40, SLIME_W, SLIME_H, {
-      frictionAir: 0.05,
-      friction:    0.5,
+    slimeRef.current = Bodies.rectangle(width / 2, SLIME_SPAWN_Y, SLIME_W, SLIME_H, {
+      frictionAir: SLIME_FRICTION_AIR,
+      friction:    BODY_FRICTION,
       restitution: 0,
       inertia:     Infinity,
       render:      { opacity: 0 },
@@ -316,7 +351,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       const cx  = nextFloorXRef.current + FLOOR_SEGMENT_W / 2;
       const seg = Bodies.rectangle(cx, floorY, FLOOR_SEGMENT_W, FLOOR_H, {
         isStatic: true,
-        friction: 0.5,
+        friction: BODY_FRICTION,
         render:   { opacity: 0 },
         label:    'floor',
       });
@@ -353,7 +388,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     const { width: canvasW, height: canvasH } = renderRef.current.options;
 
     // 1. Update camera
-    cameraXRef.current = slime.position.x - canvasW / 3;
+    cameraXRef.current = slime.position.x - canvasW / CAMERA_LEAD_DIVISOR;
     const render = renderRef.current;
     render.bounds.min.x = cameraXRef.current;
     render.bounds.max.x = cameraXRef.current + canvasW;
@@ -442,17 +477,17 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     if (tileImg && tileImg.complete) {
       for (const seg of floorSegmentsRef.current) {
-        drawTiledBody(ctx, tileImg, seg, FLOOR_SEGMENT_W, FLOOR_H, 0, 2);
+        drawTiledBody(ctx, tileImg, seg, FLOOR_SEGMENT_W, FLOOR_H, FLOOR_TILE_COL, FLOOR_TILE_ROW);
       }
       for (const plat of platformsRef.current) {
-        drawTiledBody(ctx, tileImg, plat, PLATFORM_W, PLATFORM_H, 7, 2);
+        drawTiledBody(ctx, tileImg, plat, PLATFORM_W, PLATFORM_H, PLATFORM_TILE_COL, PLATFORM_TILE_ROW);
       }
     }
 
     const portalImg = portalImgRef.current;
     if (portalImg && portalImg.complete) {
       for (const p of portalsRef.current) {
-        drawTiledBody(ctx, portalImg, p.body, PORTAL_W, PORTAL_H, 2, 4);
+        drawTiledBody(ctx, portalImg, p.body, PORTAL_W, PORTAL_H, PORTAL_TILE_COL, PORTAL_TILE_ROW);
       }
     }
 
@@ -503,8 +538,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
       // Portal icon — draw *without* cameraX to fix
       if (portalImg && portalImg.complete) {
-        const srcX = 2 * 17 + 1;  // col=2, row=4 in DarkCastleGrid.png
-        const srcY = 4 * 17 + 1;
+        const srcX = PORTAL_TILE_COL * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
+        const srcY = PORTAL_TILE_ROW * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
         ctx.drawImage(
           portalImg, srcX, srcY, TILE_SIZE, TILE_SIZE,
           width * 3 / 4 - PAD - ICON_SIZE, PAD + LINE_H * 3, ICON_SIZE, ICON_SIZE
@@ -517,10 +552,10 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Screen-space overlays
     if (pausedRef.current) {
       ctx.save();
-      ctx.fillStyle    = 'rgba(0, 0, 0, 0.45)';
+      ctx.fillStyle    = PAUSE_OVERLAY_FILL;
       ctx.fillRect(0, 0, width, height);
-      ctx.font         = 'bold 72px HomeVideo, monospace';
-      ctx.fillStyle    = '#b58900';
+      ctx.font         = OVERLAY_FONT;
+      ctx.fillStyle    = COLOR_PAUSE_TEXT;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('PAUSED', width / 2, height / 2);
@@ -529,10 +564,10 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     if (gameOverRef.current) {
       ctx.save();
-      ctx.fillStyle    = 'rgba(0, 0, 0, 0.55)';
+      ctx.fillStyle    = GAMEOVER_OVERLAY_FILL;
       ctx.fillRect(0, 0, width, height);
-      ctx.font         = 'bold 72px HomeVideo, monospace';
-      ctx.fillStyle    = '#dc322f';  // Solarized red
+      ctx.font         = OVERLAY_FONT;
+      ctx.fillStyle    = COLOR_GAMEOVER_TEXT;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('GAME OVER', width / 2, height / 2);
@@ -589,8 +624,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     World.remove(world, old);
     const next = Bodies.rectangle(x, y, w, h, {
-      frictionAir: 0.05,
-      friction:    0.5,
+      frictionAir: SLIME_FRICTION_AIR,
+      friction:    BODY_FRICTION,
       restitution: 0,
       inertia:     Infinity,
       render:      { opacity: 0 },
