@@ -38,16 +38,16 @@ const BASE_PORTAL_GAP   = 600;  // less frequent than platforms
 const PORTAL_GAP_JITTER = 400;
 
 // Left-world preseeding
-const SECRET_FLOOR_LEFT = -2000;  // westernmost floor edge; pre-seeded solid to spawn
+const SEED_FLOOR_LEFT = -2000;  // westernmost floor edge; pre-seeded solid to spawn
 
-// Secret (rick-roll) portal
-const SECRET_PORTAL_URL        = 'https://www.youtube.com/watch?v=doEqUhFiQS4';
-const SECRET_PORTAL_SPRITE_SRC = '/assets/sprites/FireSetGrid.png';
-const SECRET_PORTAL_TILE_COL   = 3;    // col 4, 1-indexed
-const SECRET_PORTAL_TILE_ROW   = 4;    // row 5, 1-indexed
-const SECRET_PORTAL_W          = 128;
-const SECRET_PORTAL_H          = 128;
-const SECRET_PORTAL_X          = -2000; // world-space x center
+// Left portal
+const LEFT_PORTAL_URL        = atob('aHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kb0VxVWhGaVFTNA==');
+const LEFT_PORTAL_SPRITE_SRC = '/assets/sprites/FireSetGrid.png';
+const LEFT_PORTAL_TILE_COL   = 3;    // 0-indexed
+const LEFT_PORTAL_TILE_ROW   = 4;    // 0-indexed
+const LEFT_PORTAL_W          = 128;
+const LEFT_PORTAL_H          = 128;
+const LEFT_PORTAL_X          = -2000;
 
 // Tile sheet layout
 const TILE_SHEET_PITCH  = TILE_SIZE + 1;  // px stride between tile origins in the sheet (tile width + 1px separation gap)
@@ -123,7 +123,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   const urlPoolRef      = useRef([]);   // loaded from data.json
 
   // Secret portal
-  const secretPortalRef    = useRef(null); // { body }
+  const leftPortalRef    = useRef(null); // { body }
   const secretPortalImgRef = useRef(null); // FireSetGrid.png
 
   // Portal modal state — triggers re-render to show confirmation dialog
@@ -320,7 +320,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     portalsRef.current        = [];
     cameraXRef.current        = 0;
     gameOverRef.current       = false;
-    nextFloorXRef.current     = SECRET_FLOOR_LEFT;  // solid floor pre-seeded from here to spawn
+    nextFloorXRef.current     = SEED_FLOOR_LEFT;    // solid floor pre-seeded from here to spawn
     nextPlatformXRef.current  = width;              // no platforms under spawn point
     nextPortalXRef.current    = width * 2;          // first portal well past spawn
 
@@ -341,7 +341,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Secret portal tile image — reuse across restarts
     if (!secretPortalImgRef.current) {
       const img = new Image();
-      img.src   = SECRET_PORTAL_SPRITE_SRC;
+      img.src   = LEFT_PORTAL_SPRITE_SRC;
       secretPortalImgRef.current = img;
     }
 
@@ -394,15 +394,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Secret portal — fixed at far-left end of pre-seeded floor
     {
       const { height: canvasH } = renderRef.current.options;
-      const portalY = canvasH - FLOOR_H - SECRET_PORTAL_H / 2;
-      const body = Bodies.rectangle(SECRET_PORTAL_X, portalY, SECRET_PORTAL_W, SECRET_PORTAL_H, {
+      const portalY = canvasH - FLOOR_H - LEFT_PORTAL_H / 2;
+      const body = Bodies.rectangle(LEFT_PORTAL_X, portalY, LEFT_PORTAL_W, LEFT_PORTAL_H, {
         isStatic: true,
         isSensor: true,
         render:   { opacity: 0 },
         label:    'secretPortal',
       });
       World.add(engineRef.current.world, body);
-      secretPortalRef.current = { body };
+      leftPortalRef.current = { body };
     }
 
     Events.on(engineRef.current, 'afterUpdate', onTick);
@@ -459,12 +459,12 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       }
     }
 
-    // 3c. Secret portal collision — stop runner then redirect, no modal
-    if (secretPortalRef.current) {
-      const hit = Query.collides(slime, [secretPortalRef.current.body]);
+    // 3c. Left portal collision — stop runner then redirect, no modal
+    if (leftPortalRef.current) {
+      const hit = Query.collides(slime, [leftPortalRef.current.body]);
       if (hit.length > 0) {
         Runner.stop(runnerRef.current);
-        window.location.href = SECRET_PORTAL_URL;
+        window.location.href = LEFT_PORTAL_URL;
       }
     }
 
@@ -541,12 +541,12 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     }
 
     const secretPortalImg = secretPortalImgRef.current;
-    if (secretPortalImg && secretPortalImg.complete && secretPortalRef.current) {
+    if (secretPortalImg && secretPortalImg.complete && leftPortalRef.current) {
       drawTiledBody(
         ctx, secretPortalImg,
-        secretPortalRef.current.body,
-        SECRET_PORTAL_W, SECRET_PORTAL_H,
-        SECRET_PORTAL_TILE_COL, SECRET_PORTAL_TILE_ROW
+        leftPortalRef.current.body,
+        LEFT_PORTAL_W, LEFT_PORTAL_H,
+        LEFT_PORTAL_TILE_COL, LEFT_PORTAL_TILE_ROW
       );
     }
 
@@ -713,7 +713,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     floorSegmentsRef.current  = [];
     platformsRef.current      = [];
     portalsRef.current        = [];
-    secretPortalRef.current   = null;
+    leftPortalRef.current   = null;
     nextFloorXRef.current     = 0;
     nextPlatformXRef.current  = 0;
     nextPortalXRef.current    = 0;
