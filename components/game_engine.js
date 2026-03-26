@@ -28,13 +28,13 @@ const PLATFORM_H          = 16;   // platform body height
 const PLATFORM_ELEV_MIN   = 75;   // min y from canvas top
 const PLATFORM_ELEV_MAX   = 350;  // max y from canvas top
 const WORLD_LOOKAHEAD     = 800;  // pre-generate this far ahead of slime
-const DESPAWN_MARGIN      = 200;  // remove bodies this far behind camera left edge
+const DESPAWN_MARGIN      = 10000;  // remove bodies this far behind camera left edge
 const GAME_OVER_THRESHOLD = 200;  // px below canvas bottom triggers game over
 
 // Portal constants
 const PORTAL_W          = 64;    // TILE_SIZE * TILE_SCALE — one rendered tile
 const PORTAL_H          = 64;
-const BASE_PORTAL_GAP   = 1200;  // less frequent than platforms
+const BASE_PORTAL_GAP   = 600;  // less frequent than platforms
 const PORTAL_GAP_JITTER = 400;
 
 // Tile sheet layout
@@ -508,43 +508,34 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     }
     ctx.restore();
 
-    // Welcome text — world-anchored at (cameraX + screenX) so it stays
-    // fixed on screen while remaining inside the world-space transform block.
+    // Welcome text
     {
-      const PAD       = 16;
-      const LINE_H    = 34;
-      const ICON_SIZE = 40;
-      const cameraX   = cameraXRef.current;
+      const LEFT_OFFSET  = 256;
+      const RIGHT_OFFSET = 896;
+      const PAD          = 16;
+      const LINE_H       = 34;
+      const ICON_SIZE    = 32;
+      const cameraX      = cameraXRef.current;
 
       drawWorldText(ctx, cameraX, {
         font:  '28px HomeVideo, monospace',
         color: '#ffffff',
         lines: [
           // Top-center: welcome header
-          { text: 'Welcome Denizen of the Internet', x: width / 2,                                 y: PAD,              align: 'center' },
+          { text: 'Welcome Denizen of the Internet', x: width * 2 / 3,      y: PAD,              align: 'center' },
           // Top-left: how to play
-          { text: 'How to play:',                    x: PAD,                                       y: PAD + LINE_H,     align: 'left'   },
-          { text: 'W \u2014 jump',                   x: PAD,                                       y: PAD + LINE_H * 2, align: 'left'   },
-          { text: 'A \u2014 move left',              x: PAD,                                       y: PAD + LINE_H * 3, align: 'left'   },
-          { text: 'S \u2014 crouch',                 x: PAD,                                       y: PAD + LINE_H * 4, align: 'left'   },
-          { text: 'D \u2014 move right',             x: PAD,                                       y: PAD + LINE_H * 5, align: 'left'   },
-          { text: 'SPACE \u2014 pause',              x: PAD,                                       y: PAD + LINE_H * 6, align: 'left'   },
+          { text: 'How to play:',                    x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 2, align: 'left'   },
+          { text: 'W \u2014 jump',                   x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 3, align: 'left'   },
+          { text: 'A \u2014 move left',              x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 4, align: 'left'   },
+          { text: 'S \u2014 crouch',                 x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 5, align: 'left'   },
+          { text: 'D \u2014 move right',             x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 6, align: 'left'   },
+          { text: 'SPACE \u2014 pause',              x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 7, align: 'left'   },
           // Top-right: hint
-          { text: 'Hint:',                           x: width * 3 / 4 - PAD,                       y: PAD + LINE_H,     align: 'right'  },
-          { text: 'Find these portals to',           x: width * 3 / 4 - PAD - ICON_SIZE - PAD / 2, y: PAD + LINE_H * 2, align: 'right'  },
-          { text: 'keep surfing the web:',           x: width * 3 / 4 - PAD - ICON_SIZE - PAD / 2, y: PAD + LINE_H * 3, align: 'right'  }
+          { text: 'Hint:',                           x: RIGHT_OFFSET,       y: PAD + LINE_H * 2, align: 'left'  },
+          { text: 'Go right to find portals that',   x: RIGHT_OFFSET,       y: PAD + LINE_H * 3, align: 'left'  },
+          { text: 'warp you across the web',         x: RIGHT_OFFSET,       y: PAD + LINE_H * 4, align: 'left'  }
         ],
       });
-
-      // Portal icon — draw *without* cameraX to fix
-      if (portalImg && portalImg.complete) {
-        const srcX = PORTAL_TILE_COL * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
-        const srcY = PORTAL_TILE_ROW * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
-        ctx.drawImage(
-          portalImg, srcX, srcY, TILE_SIZE, TILE_SIZE,
-          width * 3 / 4 - PAD - ICON_SIZE, PAD + LINE_H * 3, ICON_SIZE, ICON_SIZE
-        );
-      }
     }
 
     ctx.restore();  // end world-space
