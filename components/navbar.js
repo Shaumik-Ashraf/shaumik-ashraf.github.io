@@ -30,6 +30,7 @@ export function AppNavbar() {
             <Nav.Link as="button" onClick={handleRestart}>Restart</Nav.Link>
             <Nav.Link as="button" onClick={handlePauseResume}>{paused ? 'Resume' : 'Pause'}</Nav.Link>
             <Nav.Link as="button" onClick={() => router.push('/settings')}>Settings</Nav.Link>
+            <Nav.Link as="button" onClick={() => router.push('/credits')}>Credits</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

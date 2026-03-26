@@ -27,15 +27,15 @@ const PLATFORM_W          = 128;  // platform body width
 const PLATFORM_H          = 16;   // platform body height
 const PLATFORM_ELEV_MIN   = 75;   // min y from canvas top
 const PLATFORM_ELEV_MAX   = 350;  // max y from canvas top
-const WORLD_LOOKAHEAD     = 800;  // pre-generate this far ahead of slime
-const DESPAWN_MARGIN      = 10000;  // remove bodies this far behind camera left edge
-const GAME_OVER_THRESHOLD = 200;  // px below canvas bottom triggers game over
+const WORLD_LOOKAHEAD     = 5000; // pre-generate this far ahead of slime
+const DESPAWN_MARGIN      = 10000; // remove bodies this far behind camera left edge
+const GAME_OVER_THRESHOLD = 150;   // px below canvas bottom triggers game over
 
 // Portal constants
-const PORTAL_W          = 64;    // TILE_SIZE * TILE_SCALE — one rendered tile
+const PORTAL_W          = 64;   // TILE_SIZE * TILE_SCALE — one rendered tile
 const PORTAL_H          = 64;
-const BASE_PORTAL_GAP   = 600;  // less frequent than platforms
-const PORTAL_GAP_JITTER = 400;
+const BASE_PORTAL_GAP   = 1000;  // less frequent than platforms
+const PORTAL_GAP_JITTER = 900;
 
 // Left-world preseeding
 const SEED_FLOOR_LEFT = -2000;  // westernmost floor edge; pre-seeded solid to spawn
