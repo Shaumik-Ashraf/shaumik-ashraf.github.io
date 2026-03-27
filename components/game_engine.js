@@ -690,8 +690,19 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   // Input
   // ---------------------------------------------------------------------------
 
+  // Normalize arrow keys to their WASD equivalents
+  const applyKeyboardBinding = (raw) => {
+    switch (raw) {
+      case 'ArrowUp':    return 'w';
+      case 'ArrowLeft':  return 'a';
+      case 'ArrowDown':  return 's';
+      case 'ArrowRight': return 'd';
+      default:           return raw.toLowerCase();
+    }
+  };
+
   const handleKeyDown = (e) => {
-    const key = e.key.toLowerCase();
+    const key = applyKeyboardBinding(e.key);
 
     if (e.key === ' ') {
       e.preventDefault();
@@ -718,7 +729,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   };
 
   const handleKeyUp = (e) => {
-    const key = e.key.toLowerCase();
+    const key = applyKeyboardBinding(e.key);
     keysRef.current[key] = false;
 
     if (key === 's' && crouchingRef.current) {
