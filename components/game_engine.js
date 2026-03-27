@@ -72,7 +72,7 @@ const SLIME_FRICTION_AIR = 0.05;  // air drag on the player body
 const SLIME_SPAWN_Y = 40;  // px from canvas top for initial player spawn
 
 // Camera
-const CAMERA_LEAD_DIVISOR = 3;  // player appears 1/N of the way from canvas left
+const CAMERA_LEAD_DIVISOR = 2;  // player appears 1/N of the way from canvas left
 
 // Asset paths
 const TILE_SPRITE_SRC   = '/assets/sprites/BasicGreenGrid.png';
@@ -630,8 +630,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Welcome text — all offsets scaled with canvas size
     {
       const ts           = sc.textScale;
-      const LEFT_OFFSET  = 256  * ts;
-      const RIGHT_OFFSET = 896  * ts;
+      const LEFT_OFFSET  = 200  * ts;
+      const RIGHT_OFFSET = 700  * ts;
       const PAD          = 16   * ts;
       const LINE_H       = 34   * ts;
       const fontSize     = Math.round(28 * ts);
@@ -642,7 +642,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
         color: '#ffffff',
         lines: [
           // Top-center: welcome header
-          { text: 'Welcome Denizen of the Internet', x: width * 2 / 3,      y: PAD,              align: 'center' },
+          { text: 'Welcome Denizen of the Internet', x: width / 2,          y: PAD,              align: 'center' },
           // Top-left: how to play
           { text: 'How to play:',                    x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 2, align: 'left'   },
           { text: 'W \u2014 jump',                   x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 3, align: 'left'   },
