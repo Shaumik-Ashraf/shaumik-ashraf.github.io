@@ -821,6 +821,18 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       if (audioRef.current) audioRef.current.muted = false;
     },
     isMuted: () => audioRef.current?.muted ?? false,
+    togglePause: () => {
+      if (gameOverRef.current) return;
+      if (pausedRef.current) {
+        pausedRef.current = false;
+        Runner.run(runnerRef.current, engineRef.current);
+        audioRef.current?.play().catch(() => {});
+      } else {
+        pausedRef.current = true;
+        Runner.stop(runnerRef.current);
+        audioRef.current?.pause();
+      }
+    },
     pressKey: (key) => {
       keysRef.current[key] = true;
       if (key === 's' && !crouchingRef.current) {

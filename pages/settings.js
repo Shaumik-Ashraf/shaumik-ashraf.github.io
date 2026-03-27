@@ -7,7 +7,7 @@ import { useGame } from "../contexts/game_context";
 
 export default function SettingsPage() {
   const router  = useRouter();
-  const { gameRef, touchEnabled, setTouchEnabled } = useGame();
+  const { gameRef, touchEnabled, setTouchEnabled, verticalControlsEnabled, setVerticalControlsEnabled } = useGame();
 
   const [mounted, setMounted] = useState(false);
   const [volume,  setVolume]  = useState(100);
@@ -74,6 +74,13 @@ export default function SettingsPage() {
             label="Touch controls"
             checked={touchEnabled}
             onChange={() => setTouchEnabled(v => !v)}
+            className="mt-2"
+          />
+          <Form.Check
+            type="switch"
+            label="Vertical view controls"
+            checked={verticalControlsEnabled}
+            onChange={() => setVerticalControlsEnabled(v => !v)}
             className="mt-2"
           />
         </Form>
