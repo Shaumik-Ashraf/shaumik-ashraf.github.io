@@ -645,11 +645,11 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
           { text: 'Welcome Denizen of the Internet', x: width / 2,          y: PAD,              align: 'center' },
           // Top-left: how to play
           { text: 'How to play:',                    x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 2, align: 'left'   },
-          { text: 'W \u2014 jump',                   x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 3, align: 'left'   },
-          { text: 'A \u2014 move left',              x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 4, align: 'left'   },
-          { text: 'S \u2014 crouch',                 x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 5, align: 'left'   },
-          { text: 'D \u2014 move right',             x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 6, align: 'left'   },
-          { text: 'SPACE \u2014 pause',              x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 7, align: 'left'   },
+          { text: 'W/\u25b2 \u2014 jump',             x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 3, align: 'left'   },
+          { text: 'A/\u25c0 \u2014 move left',       x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 4, align: 'left'   },
+          { text: 'S/\u25bc \u2014 crouch',          x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 5, align: 'left'   },
+          { text: 'D/\u25b6 \u2014 move right',      x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 6, align: 'left'   },
+          { text: 'SPACE/\u23f8 \u2014 pause',       x: LEFT_OFFSET + PAD,  y: PAD + LINE_H * 7, align: 'left'   },
           // Top-right: hint
           { text: 'Hint:',                           x: RIGHT_OFFSET,       y: PAD + LINE_H * 2, align: 'left'  },
           { text: 'Go right to find portals that',   x: RIGHT_OFFSET,       y: PAD + LINE_H * 3, align: 'left'  },
