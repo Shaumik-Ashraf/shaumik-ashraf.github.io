@@ -44,7 +44,7 @@ const PORTAL_GAP_JITTER = 900;   // world-space, not scaled
 const SEED_FLOOR_LEFT = -2000;  // westernmost floor edge; pre-seeded solid to spawn
 
 // Left portal
-const LEFT_PORTAL_URL        = atob('aHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kb0VxVWhGaVFTNA==');
+const LEFT_PORTAL_URL        = atob('aHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQ==');
 const LEFT_PORTAL_SPRITE_SRC = '/assets/sprites/FireSetGrid.png';
 const LEFT_PORTAL_TILE_COL   = 3;    // 0-indexed
 const LEFT_PORTAL_TILE_ROW   = 4;    // 0-indexed
