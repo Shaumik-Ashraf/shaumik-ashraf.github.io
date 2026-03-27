@@ -122,6 +122,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   // Portals
   const portalsRef      = useRef([]);   // [{ body, url }]
   const nextPortalXRef  = useRef(0);
+  const activePortalRef = useRef(null); // portal from portalsRef that the player is currently colliding with
   const portalImgRef    = useRef(null); // DarkCastleGrid.png
   const urlPoolRef      = useRef([]);   // loaded from data.json
 
@@ -510,6 +511,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
         const hitBody = hit[0].bodyA === slime ? hit[0].bodyB : hit[0].bodyA;
         const portal  = portalsRef.current.find(p => p.body === hitBody);
         if (portal) {
+          activePortalRef.current = portal;
           Runner.stop(runnerRef.current);
           setPortalModal({ url: portal.url, body: portal.body });
         }
@@ -719,6 +721,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       return;
     }
 
+    if (e.key.startsWith('Arrow')) e.preventDefault();
+
+    if (key === 'm') {
+      if (audioRef.current) audioRef.current.muted = !audioRef.current.muted;
+      return;
+    }
+    if (key === 'y' && activePortalRef.current) { handlePortalYes(); return; }
+    if (key === 'n' && activePortalRef.current) { handlePortalNo();  return; }
+
     keysRef.current[key] = true;
 
     if (key === 's' && !crouchingRef.current) {
@@ -891,13 +902,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   }, []);
 
   const handlePortalYes = () => {
-    if (portalModal) window.location.href = portalModal.url;
+    if (activePortalRef.current) window.location.href = activePortalRef.current.url;
   };
 
   const handlePortalNo = () => {
-    if (portalModal) {
-      portalsRef.current = portalsRef.current.filter(p => p.body !== portalModal.body);
-      World.remove(engineRef.current.world, portalModal.body);
+    const portal = activePortalRef.current;
+    if (portal) {
+      portalsRef.current = portalsRef.current.filter(p => p.body !== portal.body);
+      World.remove(engineRef.current.world, portal.body);
+      activePortalRef.current = null;
     }
     setPortalModal(null);
     Runner.run(runnerRef.current, engineRef.current);
