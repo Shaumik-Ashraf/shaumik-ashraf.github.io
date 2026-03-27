@@ -14,28 +14,31 @@ const JUMP_VEL          = -25;
 const SPRITE_SCALE      = 4;
 const CANVAS_BG         = '#073642';  // Solarized base02
 
-// World generation constants
-const TILE_SIZE           = 16;   // source px per tile in sheet
-const TILE_SCALE          = 4;    // rendered px = TILE_SIZE * TILE_SCALE = 64
-const FLOOR_H             = 20;   // physics floor body height
-const FLOOR_SEGMENT_W     = 400;  // width of one floor segment body
-const HOLE_MIN_W          = 96;   // min hole width
-const HOLE_MAX_W          = 192;  // max hole width
-const BASE_PLATFORM_GAP   = 300;  // base x-distance between platforms
-const PLATFORM_GAP_JITTER = 80;   // ± random jitter on gap
-const PLATFORM_W          = 128;  // platform body width
-const PLATFORM_H          = 16;   // platform body height
-const PLATFORM_ELEV_MIN   = 75;   // min y from canvas top
-const PLATFORM_ELEV_MAX   = 350;  // max y from canvas top
-const WORLD_LOOKAHEAD     = 5000; // pre-generate this far ahead of slime
-const DESPAWN_MARGIN      = 10000; // remove bodies this far behind camera left edge
-const GAME_OVER_THRESHOLD = 150;   // px below canvas bottom triggers game over
+// World generation constants — tuned for xl (600px canvas height).
+// All canvas-space sizes are scaled at runtime by canvasScale = canvasH / DESIGN_H.
+const DESIGN_H            = 600;  // reference canvas height (xl breakpoint)
+const TILE_SIZE           = 16;   // source px per tile in sheet (never scaled — fixed by asset)
+const TILE_SCALE          = 4;    // rendered px = TILE_SIZE * TILE_SCALE at xl
+const FLOOR_H             = 20;   // physics floor body height at xl
+const FLOOR_SEGMENT_W     = 400;  // width of one floor segment body at xl
+const HOLE_MIN_W          = 96;   // min hole width at xl
+const HOLE_MAX_W          = 192;  // max hole width at xl
+const BASE_PLATFORM_GAP   = 300;  // base x-distance between platforms at xl
+const PLATFORM_GAP_JITTER = 80;   // ± random jitter on gap at xl
+const PLATFORM_W          = 128;  // platform body width at xl
+const PLATFORM_H          = 16;   // platform body height at xl
+// Platform elevation expressed as fractions of canvas height (replaces fixed px constants)
+const PLATFORM_ELEV_FRAC_MIN = 0.125;  // 75  / 600
+const PLATFORM_ELEV_FRAC_MAX = 0.583;  // 350 / 600
+const WORLD_LOOKAHEAD     = 5000; // pre-generate this far ahead of slime (world-space, not scaled)
+const DESPAWN_MARGIN      = 10000; // remove bodies this far behind camera left edge (world-space)
+const GAME_OVER_THRESHOLD = 150;   // px below canvas bottom at xl triggers game over
 
-// Portal constants
-const PORTAL_W          = 64;   // TILE_SIZE * TILE_SCALE — one rendered tile
+// Portal constants — at xl
+const PORTAL_W          = 64;   // TILE_SIZE * TILE_SCALE — one rendered tile at xl
 const PORTAL_H          = 64;
-const BASE_PORTAL_GAP   = 1000;  // less frequent than platforms
-const PORTAL_GAP_JITTER = 900;
+const BASE_PORTAL_GAP   = 1000;  // less frequent than platforms (world-space, not scaled)
+const PORTAL_GAP_JITTER = 900;   // world-space, not scaled
 
 // Left-world preseeding
 const SEED_FLOOR_LEFT = -2000;  // westernmost floor edge; pre-seeded solid to spawn
@@ -45,8 +48,8 @@ const LEFT_PORTAL_URL        = atob('aHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1
 const LEFT_PORTAL_SPRITE_SRC = '/assets/sprites/FireSetGrid.png';
 const LEFT_PORTAL_TILE_COL   = 3;    // 0-indexed
 const LEFT_PORTAL_TILE_ROW   = 4;    // 0-indexed
-const LEFT_PORTAL_W          = 128;
-const LEFT_PORTAL_H          = 128;
+const LEFT_PORTAL_W          = 128;  // at xl
+const LEFT_PORTAL_H          = 128;  // at xl
 const LEFT_PORTAL_X          = -2000;
 
 // Tile sheet layout
@@ -132,6 +135,25 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   // Keyboard state: key → boolean
   const keysRef = useRef({});
 
+  // Scaled constants — computed once per initializeRenderer() based on actual canvas size.
+  // All canvas-space pixel values (body sizes, speeds, fonts) are multiplied by canvasScale.
+  const scaledRef = useRef({
+    tileScale: TILE_SCALE, spriteScale: SPRITE_SCALE,
+    floorH: FLOOR_H, floorSegW: FLOOR_SEGMENT_W,
+    holeMinW: HOLE_MIN_W, holeMaxW: HOLE_MAX_W,
+    platformGap: BASE_PLATFORM_GAP, platformGapJitter: PLATFORM_GAP_JITTER,
+    platformW: PLATFORM_W, platformH: PLATFORM_H,
+    elevMin: PLATFORM_ELEV_FRAC_MIN * DESIGN_H, elevMax: PLATFORM_ELEV_FRAC_MAX * DESIGN_H,
+    portalW: PORTAL_W, portalH: PORTAL_H,
+    leftPortalW: LEFT_PORTAL_W, leftPortalH: LEFT_PORTAL_H,
+    slimeW: SLIME_W, slimeH: SLIME_H, slimeHCrouch: SLIME_H_CROUCHING,
+    spawnY: SLIME_SPAWN_Y,
+    moveSpeed: MOVE_SPEED, jumpVel: JUMP_VEL,
+    gameOverThreshold: GAME_OVER_THRESHOLD,
+    overlayFont: OVERLAY_FONT,
+    textScale: 1,
+  });
+
   // ---------------------------------------------------------------------------
   // Tile drawing helper
   // ---------------------------------------------------------------------------
@@ -139,7 +161,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
   const drawTiledBody = (ctx, img, body, bodyW, bodyH, tileCol, tileRow) => {
     const srcX  = tileCol * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
     const srcY  = tileRow * TILE_SHEET_PITCH + TILE_SHEET_OFFSET;
-    const dTile = TILE_SIZE * TILE_SCALE;
+    const dTile = TILE_SIZE * scaledRef.current.tileScale;
     const bx    = body.position.x - bodyW / 2;
     const by    = body.position.y - bodyH / 2;
     const cols  = Math.ceil(bodyW / dTile);
@@ -206,12 +228,13 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     const render = renderRef.current;
     if (!world || !render) return;
 
-    const floorY     = render.options.height - FLOOR_H / 2;
-    const targetX    = slimeRef.current.position.x + WORLD_LOOKAHEAD;
+    const sc      = scaledRef.current;
+    const floorY  = render.options.height - sc.floorH / 2;
+    const targetX = slimeRef.current.position.x + WORLD_LOOKAHEAD;
 
     while (nextFloorXRef.current < targetX) {
-      const cx  = nextFloorXRef.current + FLOOR_SEGMENT_W / 2;
-      const seg = Bodies.rectangle(cx, floorY, FLOOR_SEGMENT_W, FLOOR_H, {
+      const cx  = nextFloorXRef.current + sc.floorSegW / 2;
+      const seg = Bodies.rectangle(cx, floorY, sc.floorSegW, sc.floorH, {
         isStatic: true,
         friction: BODY_FRICTION,
         render:   { opacity: 0 },
@@ -220,8 +243,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       World.add(world, seg);
       floorSegmentsRef.current.push(seg);
 
-      const holeW = HOLE_MIN_W + Math.random() * (HOLE_MAX_W - HOLE_MIN_W);
-      nextFloorXRef.current += FLOOR_SEGMENT_W + holeW;
+      const holeW = sc.holeMinW + Math.random() * (sc.holeMaxW - sc.holeMinW);
+      nextFloorXRef.current += sc.floorSegW + holeW;
     }
   };
 
@@ -229,14 +252,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     const world = engineRef.current.world;
     if (!world) return;
 
+    const sc      = scaledRef.current;
     const targetX = slimeRef.current.position.x + WORLD_LOOKAHEAD;
 
     while (nextPlatformXRef.current < targetX) {
-      const jitter = (Math.random() * 2 - 1) * PLATFORM_GAP_JITTER;
-      const spawnX = nextPlatformXRef.current + BASE_PLATFORM_GAP + jitter;
-      const spawnY = PLATFORM_ELEV_MIN + Math.random() * (PLATFORM_ELEV_MAX - PLATFORM_ELEV_MIN);
+      const jitter = (Math.random() * 2 - 1) * sc.platformGapJitter;
+      const spawnX = nextPlatformXRef.current + sc.platformGap + jitter;
+      const spawnY = sc.elevMin + Math.random() * (sc.elevMax - sc.elevMin);
 
-      const plat = Bodies.rectangle(spawnX, spawnY, PLATFORM_W, PLATFORM_H, {
+      const plat = Bodies.rectangle(spawnX, spawnY, sc.platformW, sc.platformH, {
         isStatic: true,
         friction: BODY_FRICTION,
         render:   { opacity: 0 },
@@ -254,8 +278,9 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     const render = renderRef.current;
     if (!world || !render) return;
 
+    const sc      = scaledRef.current;
     const { height: canvasH } = render.options;
-    const portalY  = canvasH - FLOOR_H - PORTAL_H / 2;
+    const portalY  = canvasH - sc.floorH - sc.portalH / 2;
     const targetX  = slimeRef.current.position.x + WORLD_LOOKAHEAD;
 
     while (nextPortalXRef.current < targetX) {
@@ -263,7 +288,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       const spawnX = nextPortalXRef.current + BASE_PORTAL_GAP + jitter;
       const url    = pickUrl();
       if (url) {
-        const body = Bodies.rectangle(spawnX, portalY, PORTAL_W, PORTAL_H, {
+        const body = Bodies.rectangle(spawnX, portalY, sc.portalW, sc.portalH, {
           isStatic: true,
           isSensor: true,
           render:   { opacity: 0 },
@@ -307,6 +332,37 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     const width  = containerRef.current.offsetWidth;
     const height = containerRef.current.offsetHeight;
+
+    // Compute scale factor and derive all canvas-space constants proportionally.
+    // DESIGN_H (600px) is the xl reference; everything scales linearly from there.
+    const s = height / DESIGN_H;
+    scaledRef.current = {
+      tileScale:          TILE_SCALE * s,
+      spriteScale:        SPRITE_SCALE * s,
+      floorH:             FLOOR_H * s,
+      floorSegW:          FLOOR_SEGMENT_W * s,
+      holeMinW:           HOLE_MIN_W * s,
+      holeMaxW:           HOLE_MAX_W * s,
+      platformGap:        BASE_PLATFORM_GAP * s,
+      platformGapJitter:  PLATFORM_GAP_JITTER * s,
+      platformW:          PLATFORM_W * s,
+      platformH:          PLATFORM_H * s,
+      elevMin:            height * PLATFORM_ELEV_FRAC_MIN,
+      elevMax:            height * PLATFORM_ELEV_FRAC_MAX,
+      portalW:            PORTAL_W * s,
+      portalH:            PORTAL_H * s,
+      leftPortalW:        LEFT_PORTAL_W * s,
+      leftPortalH:        LEFT_PORTAL_H * s,
+      slimeW:             SLIME_W * s,
+      slimeH:             SLIME_H * s,
+      slimeHCrouch:       SLIME_H_CROUCHING * s,
+      spawnY:             SLIME_SPAWN_Y * s,
+      moveSpeed:          MOVE_SPEED * s,
+      jumpVel:            JUMP_VEL * s,
+      gameOverThreshold:  GAME_OVER_THRESHOLD * s,
+      overlayFont:        `bold ${Math.round(72 * s)}px HomeVideo, monospace`,
+      textScale:          s,
+    };
 
     renderRef.current = Render.create({
       element: containerRef.current,
@@ -352,7 +408,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       .catch(() => {});
 
     // Player body — invisible; sprite drawn via afterRender
-    slimeRef.current = Bodies.rectangle(width / 2, SLIME_SPAWN_Y, SLIME_W, SLIME_H, {
+    const sc = scaledRef.current;
+    slimeRef.current = Bodies.rectangle(width / 2, sc.spawnY, sc.slimeW, sc.slimeH, {
       frictionAir: SLIME_FRICTION_AIR,
       friction:    BODY_FRICTION,
       restitution: 0,
@@ -371,11 +428,11 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     spriteImgRef.current = img;
 
     // Seed solid floor under and past the spawn point before allowing holes
-    const floorY     = height - FLOOR_H / 2;
-    const spawnSafeX = width / 2 + SLIME_W / 2;
+    const floorY     = height - sc.floorH / 2;
+    const spawnSafeX = width / 2 + sc.slimeW / 2;
     while (nextFloorXRef.current < spawnSafeX) {
-      const cx  = nextFloorXRef.current + FLOOR_SEGMENT_W / 2;
-      const seg = Bodies.rectangle(cx, floorY, FLOOR_SEGMENT_W, FLOOR_H, {
+      const cx  = nextFloorXRef.current + sc.floorSegW / 2;
+      const seg = Bodies.rectangle(cx, floorY, sc.floorSegW, sc.floorH, {
         isStatic: true,
         friction: BODY_FRICTION,
         render:   { opacity: 0 },
@@ -383,7 +440,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       });
       World.add(engineRef.current.world, seg);
       floorSegmentsRef.current.push(seg);
-      nextFloorXRef.current += FLOOR_SEGMENT_W;
+      nextFloorXRef.current += sc.floorSegW;
     }
 
     // Seed initial world geometry (holes allowed from here on)
@@ -394,8 +451,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     // Secret portal — fixed at far-left end of pre-seeded floor
     {
       const { height: canvasH } = renderRef.current.options;
-      const portalY = canvasH - FLOOR_H - LEFT_PORTAL_H / 2;
-      const body = Bodies.rectangle(LEFT_PORTAL_X, portalY, LEFT_PORTAL_W, LEFT_PORTAL_H, {
+      const portalY = canvasH - sc.floorH - sc.leftPortalH / 2;
+      const body = Bodies.rectangle(LEFT_PORTAL_X, portalY, sc.leftPortalW, sc.leftPortalH, {
         isStatic: true,
         isSensor: true,
         render:   { opacity: 0 },
@@ -469,11 +526,12 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     }
 
     // 4. Horizontal movement
+    const sc = scaledRef.current;
     if (keys['a']) {
-      Body.setVelocity(slime, { x: -MOVE_SPEED, y: slime.velocity.y });
+      Body.setVelocity(slime, { x: -sc.moveSpeed, y: slime.velocity.y });
       facingLeftRef.current = true;
     } else if (keys['d']) {
-      Body.setVelocity(slime, { x: MOVE_SPEED, y: slime.velocity.y });
+      Body.setVelocity(slime, { x: sc.moveSpeed, y: slime.velocity.y });
       facingLeftRef.current = false;
     } else {
       Body.setVelocity(slime, { x: 0, y: slime.velocity.y });
@@ -481,7 +539,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     // 5. Jump — only when on ground
     if (keys['w'] && onGround) {
-      Body.setVelocity(slime, { x: slime.velocity.x, y: JUMP_VEL });
+      Body.setVelocity(slime, { x: slime.velocity.x, y: sc.jumpVel });
     }
 
     // 6. Animation state
@@ -498,7 +556,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     anim.update(event.delta);
 
     // 7. Game over
-    if (slime.position.y > canvasH + GAME_OVER_THRESHOLD) {
+    if (slime.position.y > canvasH + sc.gameOverThreshold) {
       gameOverRef.current = true;
       Runner.stop(runnerRef.current);
       audioRef.current?.pause();
@@ -524,19 +582,21 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     ctx.save();
     ctx.translate(-cameraXRef.current, 0);
 
+    const sc = scaledRef.current;
+
     if (tileImg && tileImg.complete) {
       for (const seg of floorSegmentsRef.current) {
-        drawTiledBody(ctx, tileImg, seg, FLOOR_SEGMENT_W, FLOOR_H, FLOOR_TILE_COL, FLOOR_TILE_ROW);
+        drawTiledBody(ctx, tileImg, seg, sc.floorSegW, sc.floorH, FLOOR_TILE_COL, FLOOR_TILE_ROW);
       }
       for (const plat of platformsRef.current) {
-        drawTiledBody(ctx, tileImg, plat, PLATFORM_W, PLATFORM_H, PLATFORM_TILE_COL, PLATFORM_TILE_ROW);
+        drawTiledBody(ctx, tileImg, plat, sc.platformW, sc.platformH, PLATFORM_TILE_COL, PLATFORM_TILE_ROW);
       }
     }
 
     const portalImg = portalImgRef.current;
     if (portalImg && portalImg.complete) {
       for (const p of portalsRef.current) {
-        drawTiledBody(ctx, portalImg, p.body, PORTAL_W, PORTAL_H, PORTAL_TILE_COL, PORTAL_TILE_ROW);
+        drawTiledBody(ctx, portalImg, p.body, sc.portalW, sc.portalH, PORTAL_TILE_COL, PORTAL_TILE_ROW);
       }
     }
 
@@ -545,15 +605,15 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       drawTiledBody(
         ctx, secretPortalImg,
         leftPortalRef.current.body,
-        LEFT_PORTAL_W, LEFT_PORTAL_H,
+        sc.leftPortalW, sc.leftPortalH,
         LEFT_PORTAL_TILE_COL, LEFT_PORTAL_TILE_ROW
       );
     }
 
     // Slime sprite
     const frame = anim.getFrame();
-    const dw    = frame.w * SPRITE_SCALE;
-    const dh    = frame.h * SPRITE_SCALE;
+    const dw    = frame.w * sc.spriteScale;
+    const dh    = frame.h * sc.spriteScale;
     const { x, y } = slime.position;
 
     ctx.save();
@@ -567,17 +627,18 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     }
     ctx.restore();
 
-    // Welcome text
+    // Welcome text — all offsets scaled with canvas size
     {
-      const LEFT_OFFSET  = 256;
-      const RIGHT_OFFSET = 896;
-      const PAD          = 16;
-      const LINE_H       = 34;
-      const ICON_SIZE    = 32;
+      const ts           = sc.textScale;
+      const LEFT_OFFSET  = 256  * ts;
+      const RIGHT_OFFSET = 896  * ts;
+      const PAD          = 16   * ts;
+      const LINE_H       = 34   * ts;
+      const fontSize     = Math.round(28 * ts);
       const cameraX      = cameraXRef.current;
 
       drawWorldText(ctx, cameraX, {
-        font:  '28px HomeVideo, monospace',
+        font:  `${fontSize}px HomeVideo, monospace`,
         color: '#ffffff',
         lines: [
           // Top-center: welcome header
@@ -604,7 +665,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       ctx.save();
       ctx.fillStyle    = PAUSE_OVERLAY_FILL;
       ctx.fillRect(0, 0, width, height);
-      ctx.font         = OVERLAY_FONT;
+      ctx.font         = sc.overlayFont;
       ctx.fillStyle    = COLOR_PAUSE_TEXT;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
@@ -616,7 +677,7 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       ctx.save();
       ctx.fillStyle    = GAMEOVER_OVERLAY_FILL;
       ctx.fillRect(0, 0, width, height);
-      ctx.font         = OVERLAY_FONT;
+      ctx.font         = sc.overlayFont;
       ctx.fillStyle    = COLOR_GAMEOVER_TEXT;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
@@ -651,7 +712,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     if (key === 's' && !crouchingRef.current) {
       crouchingRef.current = true;
-      swapHitbox(SLIME_W, SLIME_H_CROUCHING);
+      const sc = scaledRef.current;
+      swapHitbox(sc.slimeW, sc.slimeHCrouch);
     }
   };
 
@@ -661,7 +723,8 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
 
     if (key === 's' && crouchingRef.current) {
       crouchingRef.current = false;
-      swapHitbox(SLIME_W, SLIME_H);
+      const sc = scaledRef.current;
+      swapHitbox(sc.slimeW, sc.slimeH);
     }
   };
 
@@ -758,6 +821,22 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       if (audioRef.current) audioRef.current.muted = false;
     },
     isMuted: () => audioRef.current?.muted ?? false,
+    pressKey: (key) => {
+      keysRef.current[key] = true;
+      if (key === 's' && !crouchingRef.current) {
+        crouchingRef.current = true;
+        const sc = scaledRef.current;
+        swapHitbox(sc.slimeW, sc.slimeHCrouch);
+      }
+    },
+    releaseKey: (key) => {
+      keysRef.current[key] = false;
+      if (key === 's' && crouchingRef.current) {
+        crouchingRef.current = false;
+        const sc = scaledRef.current;
+        swapHitbox(sc.slimeW, sc.slimeH);
+      }
+    },
   }));
 
   useEffect(() => {

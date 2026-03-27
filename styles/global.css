@@ -14,7 +14,14 @@
 
 :root {
   --footer-height: 5rem;
+  /* Canvas height stepped to Bootstrap breakpoints (matches --bs-breakpoint-* values) */
+  --game-canvas-h: 280px;
 }
+
+@media (min-width: 576px)  { :root { --game-canvas-h: 340px; } }  /* sm */
+@media (min-width: 768px)  { :root { --game-canvas-h: 420px; } }  /* md */
+@media (min-width: 992px)  { :root { --game-canvas-h: 500px; } }  /* lg */
+@media (min-width: 1200px) { :root { --game-canvas-h: 600px; } }  /* xl */
 
 #layoutContainer {
   position: relative;
@@ -27,7 +34,7 @@
 
 #gameCanvas {
   width: 100%;
-  height: 600px;
+  height: var(--game-canvas-h);
   cursor: default;
   margin: 1rem 0;
   border: 2px solid #b58900;

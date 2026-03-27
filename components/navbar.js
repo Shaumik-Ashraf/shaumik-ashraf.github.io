@@ -7,7 +7,7 @@ import { useGame } from '../contexts/game_context';
 
 export function AppNavbar() {
   const router  = useRouter();
-  const gameRef = useGame();
+  const { gameRef } = useGame();
   const [paused, setPaused] = useState(false);
 
   const handleRestart = () => {
