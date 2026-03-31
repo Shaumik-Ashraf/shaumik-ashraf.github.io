@@ -703,6 +703,21 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
     }
   };
 
+  const handlePortalYes = () => {
+    if (activePortalRef.current) window.location.href = activePortalRef.current.url;
+  };
+
+  const handlePortalNo = () => {
+    const portal = activePortalRef.current;
+    if (portal) {
+      portalsRef.current = portalsRef.current.filter(p => p.body !== portal.body);
+      World.remove(engineRef.current.world, portal.body);
+      activePortalRef.current = null;
+    }
+    setPortalModal(null);
+    Runner.run(runnerRef.current, engineRef.current);
+  };
+
   const handleKeyDown = (e) => {
     const key = applyKeyboardBinding(e.key);
 
@@ -900,21 +915,6 @@ const GameEngine = forwardRef(function GameEngine(_, ref) {
       window.removeEventListener('keyup',   handleKeyUp);
     };
   }, []);
-
-  const handlePortalYes = () => {
-    if (activePortalRef.current) window.location.href = activePortalRef.current.url;
-  };
-
-  const handlePortalNo = () => {
-    const portal = activePortalRef.current;
-    if (portal) {
-      portalsRef.current = portalsRef.current.filter(p => p.body !== portal.body);
-      World.remove(engineRef.current.world, portal.body);
-      activePortalRef.current = null;
-    }
-    setPortalModal(null);
-    Runner.run(runnerRef.current, engineRef.current);
-  };
 
   return (
     <>

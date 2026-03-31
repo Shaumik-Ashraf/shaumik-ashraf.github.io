@@ -15,7 +15,15 @@ export default function Layout({ children }) {
   const year                                               = new Date().getFullYear();
   const { gameRef, touchEnabled, verticalControlsEnabled } = useGame();
   const [showResizeToast, setShowResizeToast]              = useState(false);
+  const [version, setVersion]                              = useState(null);
   const resizeTimerRef                                     = useRef(null);
+
+  useEffect(() => {
+    fetch('/data.json')
+      .then(r => r.json())
+      .then(({ version }) => setVersion(version))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
