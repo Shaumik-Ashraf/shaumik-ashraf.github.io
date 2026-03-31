@@ -25,6 +25,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Validate data.json
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+      - name: Validate JSON
+        run: npx jsonlint "${{ github.workspace }}/public/data.json"
+
   # Build job
   build:
     runs-on: ubuntu-latest

@@ -55,7 +55,7 @@ export default function Layout({ children }) {
       </div>
       <footer id="layoutFooter" className="text-center text-muted">
         <hr />
-        <p>&copy; {year} Shaumik Ashraf</p>
+        <p>&copy; {year} Shaumik Ashraf | Version {version}</p>
       </footer>
 
       <ToastContainer position="bottom-end" className="p-3" style={{ zIndex: 1100 }}>

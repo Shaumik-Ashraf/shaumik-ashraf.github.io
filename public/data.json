@@ -3,10 +3,17 @@
     { "url": "https://www.pointlesssites.com/", "weight": 1.4 },
     { "url": "https://ohmyz.sh/", "weight": 1.1 },
     { "url": "https://anonchatgpt.com/", "weight": 1.0 },
-    { "url": "https://www.vim.org/download.php", "weight": 1.0 },
+    { "url": "https://www.thingiverse.com/", "weight": 1.0 },
+    { "url": "https://grabcad.com/library", "weight": 1.0 },
+    { "url": "https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview", "weight": 1.0 },
+    { "url": "https://manjaro.org/", "weight": 1.0 },
+    { "url": "https://www.nano-editor.org/", "weight": 1.0 },
     { "url": "https://github.com/Shaumik-Ashraf/shaumik-ashraf.github.io", "weight": 1.0 },
-    { "url": "https://www.gnu.org/software/emacs/", "weight": 1.0 },
+    { "url": "https://www.vim.org/download.php", "weight": 0.9 },
+    { "url": "https://www.gnu.org/software/emacs/", "weight": 0.9 },
+    { "url": "https://github.com/neovim/neovim", "weight": 0.8 },
     { "url": "https://www.spacemacs.org/", "weight": 0.8 },
-    { "url": "https://ncase.me/trust/", "weight": 0.2 }
+    { "url": "https://ncase.me/trust/", "weight": 0.2 },
+    { "url": "https://img.pokemondb.net/sprites/home/shiny/2x/magikarp.jpg", "weight": 0.1 }
   ]
 }
